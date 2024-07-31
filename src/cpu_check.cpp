@@ -29,13 +29,13 @@
 #endif
 #include "intel_intrinsics.h"
 
-// Set the feature bit representing AES (25th bit) (0x0200'0000)
-constexpr std::uint32_t Intel_AES_Bit = 0x0200'0000;
-
 namespace Terra::Crypto::Cipher
 {
 
 #ifdef TERRA_USE_INTEL_AES_INTRINSICS
+
+// Set the feature bit representing AES (25th bit) (0x0200'0000)
+constexpr std::uint32_t Intel_AES_Bit = 0x0200'0000;
 
 #ifdef _WIN32
 

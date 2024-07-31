@@ -19,18 +19,18 @@
  *      None.
  */
 
-#include <array>
 #include <cstdint>
 #ifdef __linux__
 #include <cpuid.h>
 #endif
 #ifdef _WIN32
+#include <array>
 #include <intrin.h>
 #endif
 #include "intel_intrinsics.h"
 
-// Set the feature bit representing AES (25th bit) (0x02000000)
-#define INTEL_AES_BIT (std::uint32_t(1) << 25)
+// Set the feature bit representing AES (25th bit) (0x0200'0000)
+constexpr std::uint32_t Intel_AES_Bit = 0x0200'0000;
 
 namespace Terra::Crypto::Cipher
 {
@@ -50,7 +50,7 @@ bool CPUSupportsAES_NI()
 
     std::array<int, 4> cpu_info{};
     __cpuid(cpu_info.data(), 1);
-    return (cpu_info[2] & INTEL_AES_BIT) != 0;
+    return (cpu_info[2] & Intel_AES_Bit) != 0;
 }
 
 #else
@@ -68,7 +68,7 @@ bool CPUSupportsAES_NI()
 
     std::uint32_t eax{}, ebx{}, ecx{}, edx{};
     __cpuid(1, eax, ebx, ecx, edx);
-    return (ecx & INTEL_AES_BIT) != 0;
+    return (ecx & Intel_AES_Bit) != 0;
 }
 
 #else // __linux__
@@ -88,7 +88,7 @@ bool CPUSupportsAES_NI()
 
     std::uint32_t eax{}, ebx{}, ecx{}, edx{};
     cpuid(1, eax, ebx, ecx, edx);
-    return (ecx & INTEL_AES_BIT) != 0;
+    return (ecx & Intel_AES_Bit) != 0;
 }
 
 #endif // __linux__

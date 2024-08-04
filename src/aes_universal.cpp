@@ -189,6 +189,9 @@ AESUniversal::~AESUniversal()
  */
 AESUniversal &AESUniversal::operator=(const AESUniversal &other)
 {
+    // If assigning to self, jut return this
+    if (this == &other) return *this;
+
     Nr = other.Nr;
     Nk = other.Nk;
     std::memcpy(W, other.W, sizeof(W));
@@ -214,8 +217,11 @@ AESUniversal &AESUniversal::operator=(const AESUniversal &other)
  *  Comments:
  *      None.
  */
-AESUniversal &AESUniversal::operator=(AESUniversal &&other)
+AESUniversal &AESUniversal::operator=(AESUniversal &&other) noexcept
 {
+    // If assigning to self, jut return this
+    if (this == &other) return *this;
+
     Nr = other.Nr;
     Nk = other.Nk;
     std::memcpy(W, other.W, sizeof(W));
@@ -244,6 +250,10 @@ AESUniversal &AESUniversal::operator=(AESUniversal &&other)
  */
 void AESUniversal::SetKey(const std::span<const std::uint8_t> key)
 {
+    // Zero the key schedule
+    SecUtil::SecureErase(W, sizeof(W));
+    SecUtil::SecureErase(DW, sizeof(DW));
+
     // Create the encryption round keys given the key length (W)
     switch (key.size())
     {
@@ -362,11 +372,36 @@ void AESUniversal::SetKey(const std::span<const std::uint8_t> key)
 }
 
 /*
+ * AESUniversal::ClearKeyState()
+ *
+ *  Description:
+ *      Clear the key and all state data.
+ *
+ *  Parameters:
+ *      None.
+ *
+ *  Returns:
+ *      Nothing.
+ *
+ *  Comments:
+ *      None.
+ */
+void AESUniversal::ClearKeyState()
+{
+    SecUtil::SecureErase(&Nr, sizeof(Nr));
+    SecUtil::SecureErase(&Nk, sizeof(Nk));
+    SecUtil::SecureErase(state, sizeof(state));
+    SecUtil::SecureErase(alt_state, sizeof(alt_state));
+    SecUtil::SecureErase(W, sizeof(W));
+    SecUtil::SecureErase(DW, sizeof(DW));
+}
+
+/*
  * AESUniversal::Encrypt()
  *
  *  Description:
  *      This function will encrypt a block of plaintext and return the
- *      ciphertext.
+ *      ciphertext.  It is assumed the key was previously set via SetKey().
  *
  *  Parameters:
  *      plaintext [in]
@@ -522,7 +557,7 @@ void AESUniversal::Encrypt(
  *
  *  Description:
  *      This function will decrypt a block of ciphertext and return the
- *      plaintext.
+ *      plaintext.  It is assumed the key was previously set via SetKey().
  *
  *  Parameters:
  *      ciphertext [in]
@@ -692,10 +727,14 @@ void AESUniversal::Decrypt(
  */
 bool AESUniversal::operator==(const AESUniversal &other) const
 {
+    // If comparing to self, return true
+    if (this == &other) return true;
+
     if (Nk != other.Nk) return false;
     if (Nr != other.Nr) return false;
-    if (std::memcmp(W, other.W, (Nr + 1) * Nb)) return false;
-    if (std::memcmp(DW, other.DW, (Nr + 1) * Nb)) return false;
+    if (std::memcmp(W, other.W, sizeof(W)) != 0) return false;
+    if (std::memcmp(DW, other.DW, sizeof(DW)) != 0) return false;
+
     return true;
 }
 

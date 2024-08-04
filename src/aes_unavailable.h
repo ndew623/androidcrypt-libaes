@@ -43,6 +43,8 @@ struct AESUnavailable : public AESEngine
 
     virtual void SetKey(const std::span<const std::uint8_t>) override {}
 
+    virtual void ClearKeyState() override {}
+
     virtual void Encrypt(const std::span<const std::uint8_t, 16>,
                          std::span<std::uint8_t, 16>) noexcept override
     {

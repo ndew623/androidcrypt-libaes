@@ -18,6 +18,7 @@
  *      None.
  */
 
+#include <algorithm>
 #include <terra/secutil/secure_erase.h>
 #include <terra/crypto/cipher/aes.h>
 #include "aes_tables.h"
@@ -47,25 +48,8 @@ namespace Terra::Crypto::Cipher
  */
 AES::AES()
 {
-    // If the processor support AES-NI instructions, try the Intel engine
-    if (CPUSupportsAES_NI())
-    {
-        // Use the AES engine that uses AES-NI instructions
-        aes_engine = std::make_unique<AESIntel>();
-
-        // Reset the pointer if AES-NI cannot be used
-        if (aes_engine->GetEngineType() == AESEngineType::Unavailable)
-        {
-            aes_engine.reset();
-        }
-    }
-
-    // If no other engine is available, use the universal engine
-    if (!aes_engine)
-    {
-        // Use the universal engine that works on all processors
-        aes_engine = std::make_unique<AESUniversal>();
-    }
+    // Create the AES engine
+    CreateEngine();
 }
 
 /*
@@ -111,7 +95,7 @@ AES::AES(const std::span<const std::uint8_t> key) : AES()
  */
 AES::AES(const AES &other)
 {
-    // Create an engine that aligns with the other object
+    // Create an engine like that of the other object
     switch (other.aes_engine->GetEngineType())
     {
         case AESEngineType::Universal:
@@ -131,6 +115,7 @@ AES::AES(const AES &other)
             break;
 
         default:
+            // Should only happen if there was an allocation failure previously
             throw AESException("Failed to determine AES engine type");
             break;
     }
@@ -153,24 +138,53 @@ AES::AES(const AES &other)
  *  Comments:
  *      None.
  */
-AES::AES(AES &&other) : AES()
+AES::AES(AES &&other) noexcept : AES()
 {
-    // Create an engine that aligns with the other object
-    switch (other.aes_engine->GetEngineType())
+    // Clear this engine's key and state data
+    aes_engine->ClearKeyState();
+
+    // Swap the engine in this object with other
+    std::swap(aes_engine, other.aes_engine);
+}
+
+/*
+ *  AES::SetKey()
+ *
+ *  Description:
+ *      This function will set the key to be used for subsequent calls to
+ *      Encrypt() or Decrypt().
+ *
+ *  Parameters:
+ *      key [in]
+ *          The encryption key to use with this instance of the object.
+ *
+ *  Returns:
+ *      Nothing, though an exception will be thrown if the key provided is not
+ *      one of 16, 24, or 32 octets in length as required by the standard.
+ *
+ *  Comments:
+ *      None.
+ */
+void AES::CreateEngine()
+{
+    // If the processor support AES-NI instructions, try the Intel engine
+    if (CPUSupportsAES_NI())
     {
-        case AESEngineType::Universal:
-            aes_engine = std::move(other.aes_engine);
-            other.aes_engine = std::make_unique<AESUniversal>();
-            break;
+        // Use the AES engine that uses AES-NI instructions
+        aes_engine = std::make_unique<AESIntel>();
 
-        case AESEngineType::Intel:
-            aes_engine = std::move(other.aes_engine);
-            other.aes_engine = std::make_unique<AESIntel>();
-            break;
+        // Reset the pointer if AES-NI cannot be used
+        if (aes_engine->GetEngineType() == AESEngineType::Unavailable)
+        {
+            aes_engine.reset();
+        }
+    }
 
-        default:
-            throw AESException("Failed to determine AES engine type");
-            break;
+    // If no other engine is available, use the universal engine
+    if (!aes_engine)
+    {
+        // Use the universal engine that works on all processors
+        aes_engine = std::make_unique<AESUniversal>();
     }
 }
 
@@ -349,6 +363,9 @@ bool AES::operator!=(const AES &other) const
  */
 AES &AES::operator=(const AES &other)
 {
+    // If this is the same object, just return this
+    if (this == &other) return *this;
+
     // Create an engine that aligns with the other object
     switch (other.aes_engine->GetEngineType())
     {
@@ -391,24 +408,16 @@ AES &AES::operator=(const AES &other)
  *  Comments:
  *      None.
  */
-AES &AES::operator=(AES &&other)
+AES &AES::operator=(AES &&other) noexcept
 {
-    // Create an engine that aligns with the other object
-    switch (other.aes_engine->GetEngineType())
-    {
-        case AESEngineType::Universal:
-            aes_engine = std::move(other.aes_engine);
-            other.aes_engine = std::make_unique<AESUniversal>();
-            break;
-        case AESEngineType::Intel:
-            aes_engine = std::move(other.aes_engine);
-            other.aes_engine = std::make_unique<AESIntel>();
-            break;
+    // If this is the same object, just return this
+    if (this == &other) return *this;
 
-        default:
-            throw AESException("Failed to determine AES engine type");
-            break;
-    }
+    // Clear this engine's key and state data
+    aes_engine->ClearKeyState();
+
+    // Swap the aes_engine values
+    std::swap(aes_engine, other.aes_engine);
 
     return *this;
 }

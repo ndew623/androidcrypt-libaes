@@ -58,12 +58,12 @@ class AESIntel : public AESEngine
     public:
         AESIntel() noexcept;
         AESIntel(const std::span<const std::uint8_t> key);
-        AESIntel(const AESIntel &AESIntel) noexcept;
-        AESIntel(AESIntel &&AESIntel) noexcept;
+        AESIntel(const AESIntel &other) noexcept;
+        AESIntel(AESIntel &&other) noexcept;
         virtual ~AESIntel();
 
         AESIntel &operator=(const AESIntel &other);
-        AESIntel &operator=(AESIntel &&other);
+        AESIntel &operator=(AESIntel &&other) noexcept;
 
         virtual AESEngineType GetEngineType() const noexcept override
         {
@@ -73,6 +73,8 @@ class AESIntel : public AESEngine
         }
 
         virtual void SetKey(const std::span<const std::uint8_t> key) override;
+
+        virtual void ClearKeyState() override;
 
         virtual void Encrypt(
             const std::span<const std::uint8_t, 16> plaintext,

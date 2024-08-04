@@ -187,6 +187,9 @@ AESIntel::~AESIntel()
  */
 AESIntel &AESIntel::operator=(const AESIntel &other)
 {
+    // If this is the same object, just return this
+    if (this == &other) return *this;
+
     Nr = other.Nr;
     std::memcpy(W, other.W, sizeof(W));
     std::memcpy(DW, other.DW, sizeof(DW));
@@ -211,8 +214,11 @@ AESIntel &AESIntel::operator=(const AESIntel &other)
  *  Comments:
  *      None.
  */
-AESIntel &AESIntel::operator=(AESIntel &&other)
+AESIntel &AESIntel::operator=(AESIntel &&other) noexcept
 {
+    // If this is the same object, just return this
+    if (this == &other) return *this;
+
     Nr = other.Nr;
     std::memcpy(W, other.W, sizeof(W));
     std::memcpy(DW, other.DW, sizeof(DW));
@@ -240,6 +246,10 @@ AESIntel &AESIntel::operator=(AESIntel &&other)
  */
 void AESIntel::SetKey(const std::span<const std::uint8_t> key)
 {
+    // Zero the key schedule
+    SecUtil::SecureErase(W, sizeof(W));
+    SecUtil::SecureErase(DW, sizeof(DW));
+
     // Create the encryption round keys given the key length (W)
     switch (key.size())
     {
@@ -307,7 +317,7 @@ void AESIntel::SetKey(const std::span<const std::uint8_t> key)
                     T3 = _mm_slli_si128(T2, 4);
                     T2 = _mm_xor_si128(T2, T3);
                     T2 = _mm_xor_si128(T2, T4);
-                    if (alt == true)
+                    if (alt)
                     {
                         W[i] = _mm_or_si128(
                                     _mm_srli_si128(_mm_slli_si128(W[i], 8), 8),
@@ -359,7 +369,7 @@ void AESIntel::SetKey(const std::span<const std::uint8_t> key)
                     T2 = _mm_xor_si128(T2, T1);
                     T1 = _mm_slli_si128(T1, 4);
                     T2 = _mm_xor_si128(T2, T1);
-                    if (i & 0x01)
+                    if ((i & 0x01) != 0)
                     {
                         W[i] = _mm_xor_si128(
                             T2,
@@ -425,11 +435,37 @@ void AESIntel::SetKey(const std::span<const std::uint8_t> key)
 }
 
 /*
+ * AESIntel::ClearKeyState()
+ *
+ *  Description:
+ *      Clear the key and all state data.
+ *
+ *  Parameters:
+ *      None.
+ *
+ *  Returns:
+ *      Nothing.
+ *
+ *  Comments:
+ *      None.
+ */
+void AESIntel::ClearKeyState()
+{
+    SecUtil::SecureErase(&Nr, sizeof(Nr));
+    SecUtil::SecureErase(W, sizeof(W));
+    SecUtil::SecureErase(DW, sizeof(DW));
+    SecUtil::SecureErase(&T1, sizeof(T1));
+    SecUtil::SecureErase(&T2, sizeof(T2));
+    SecUtil::SecureErase(&T3, sizeof(T3));
+    SecUtil::SecureErase(&T4, sizeof(T4));
+}
+
+/*
  * AESIntel::Encrypt()
  *
  *  Description:
  *      This function will encrypt a block of plaintext and return the
- *      ciphertext.
+ *      ciphertext.  It is assumed the key was previously set via SetKey().
  *
  *  Parameters:
  *      plaintext [in]
@@ -491,7 +527,7 @@ void AESIntel::Encrypt(
  *
  *  Description:
  *      This function will decrypt a block of ciphertext and return the
- *      plaintext.
+ *      plaintext.  It is assumed the key was previously set via SetKey().
  *
  *  Parameters:
  *      ciphertext [in]
@@ -563,13 +599,42 @@ void AESIntel::Decrypt(
  *      Nothing.
  *
  *  Comments:
- *      None.
+ *      SSE 4.1 offers _mm_test_all_zeros() that could make this faster,
+ *      but since this function is unlikely to be called frequently, this
+ *      function takes a slower approach of unloading the values for comparison.
  */
 bool AESIntel::operator==(const AESIntel &other) const
 {
+    const std::array<std::uint8_t, 16> zeros{};
+    std::array<std::uint8_t, 16> result{};
+
+    // If comparing to self, return true
+    if (this == &other) return true;
+
     if (Nr != other.Nr) return false;
-    if (std::memcmp(W, other.W, (Nr + 1) * Nb)) return false;
-    if (std::memcmp(DW, other.DW, (Nr + 1) * Nb)) return false;
+
+    // Compare the key schedules
+    for (std::size_t i = 0; i < Max_Rounds + 1; i++)
+    {
+        // XOR the two arrays, so all zeros means they are equal
+        __m128i value = _mm_xor_si128(W[i], other.W[i]);
+
+        // Get the result
+        _mm_storeu_si128(reinterpret_cast<__m128i *>(result.data()), value);
+
+        // If the result is not all zeros, they are not equal
+        if (result != zeros) return false;
+
+        // XOR the two arrays, so all zeros means they are equal
+        value = _mm_xor_si128(DW[i], other.DW[i]);
+
+        // Get the result
+        _mm_storeu_si128(reinterpret_cast<__m128i *>(result.data()), value);
+
+        // If the result is not all zeros, they are not equal
+        if (result != zeros) return false;
+    }
+
     return true;
 }
 

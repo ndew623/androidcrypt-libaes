@@ -54,6 +54,8 @@ class AESEngine
 
         virtual void SetKey(const std::span<const std::uint8_t> key) = 0;
 
+        virtual void ClearKeyState() = 0;
+
         virtual void Encrypt(
             const std::span<const std::uint8_t, 16> plaintext,
             std::span<std::uint8_t, 16> ciphertext) noexcept = 0;
@@ -69,12 +71,12 @@ class AES
     public:
         AES();
         AES(const std::span<const std::uint8_t> key);
-        AES(const AES &AES);
-        AES(AES &&AES);
+        AES(const AES &other);
+        AES(AES &&other) noexcept;
         ~AES() = default;
 
         AES &operator=(const AES &other);
-        AES &operator=(AES &&other);
+        AES &operator=(AES &&other) noexcept;
 
         void SetKey(const std::span<const std::uint8_t> key);
 
@@ -88,6 +90,8 @@ class AES
         bool operator!=(const AES &other) const;
 
     protected:
+        void CreateEngine();
+
         std::unique_ptr<AESEngine> aes_engine;  // AES engine
 };
 

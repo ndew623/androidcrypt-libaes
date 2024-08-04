@@ -334,11 +334,11 @@ bool AESKeyWrap::Unwrap(const std::span<const std::uint8_t> ciphertext,
     // Perform integrity checking internally
     if (alternative_iv.size() == 8)
     {
-        if (std::memcmp(alternative_iv.data(), A, 8)) return false;
+        if (std::memcmp(alternative_iv.data(), A, 8) != 0) return false;
     }
     else
     {
-        if (std::memcmp(AES_Key_Wrap_Default_IV, A, 8)) return false;
+        if (std::memcmp(AES_Key_Wrap_Default_IV, A, 8) != 0) return false;
     }
 
     return true;
@@ -391,8 +391,7 @@ std::size_t AESKeyWrap::WrapWithPadding(
                             const std::span<const std::uint8_t> alternative_iv)
 {
     // Check to ensure that the plaintext length is properly bounded
-    if ((plaintext.size() < 1) ||
-        (plaintext.size() > AES_Key_Wrap_with_Padding_Max))
+    if (plaintext.empty() || (plaintext.size() > AES_Key_Wrap_with_Padding_Max))
     {
         throw AESException("Invalid plaintext length");
     }
@@ -404,7 +403,7 @@ std::size_t AESKeyWrap::WrapWithPadding(
     }
 
     // Compute padding to be an even 8 octets (note: "& 0x07" == "% 8")
-    if (plaintext.size() & 0x07)
+    if ((plaintext.size() & 0x07) != 0)
     {
         padding_length = 8 - (plaintext.size() & 0x07);
     }
@@ -543,11 +542,14 @@ std::size_t AESKeyWrap::UnwrapWithPadding(
     // Verify that the first 4 octets of the integrity data are correct
     if (alternative_iv.empty())
     {
-        if (std::memcmp(Alternative_IV, integrity_data, 4)) return 0;
+        if (std::memcmp(Alternative_IV, integrity_data, 4) != 0) return 0;
     }
     else
     {
-        if (std::memcmp(alternative_iv.data(), integrity_data, 4)) return 0;
+        if (std::memcmp(alternative_iv.data(), integrity_data, 4) != 0)
+        {
+            return 0;
+        }
     }
 
     // Copy the integrity check octets

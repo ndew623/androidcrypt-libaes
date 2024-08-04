@@ -16,6 +16,7 @@ set_target_properties(test_aes_universal
         CXX_STANDARD_REQUIRED ON
         CXX_EXTENSIONS OFF)
 
+# Specify the compiler options
 target_compile_options(test_aes_universal
     PRIVATE
         $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>: -Wpedantic -Wextra -Wall>

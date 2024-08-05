@@ -60,29 +60,27 @@ class AESIntel : public AESEngine
         AESIntel(const std::span<const std::uint8_t> key);
         AESIntel(const AESIntel &other) noexcept;
         AESIntel(AESIntel &&other) noexcept;
-        virtual ~AESIntel();
+        ~AESIntel();
 
         AESIntel &operator=(const AESIntel &other);
         AESIntel &operator=(AESIntel &&other) noexcept;
 
-        virtual AESEngineType GetEngineType() const noexcept override
+        AESEngineType GetEngineType() const noexcept override
         {
             if (CPUSupportsAES_NI()) return AESEngineType::Intel;
 
             return AESEngineType::Unavailable;
         }
 
-        virtual void SetKey(const std::span<const std::uint8_t> key) override;
+        void SetKey(const std::span<const std::uint8_t> key) override;
 
-        virtual void ClearKeyState() override;
+        void ClearKeyState() override;
 
-        virtual void Encrypt(
-            const std::span<const std::uint8_t, 16> plaintext,
-            std::span<std::uint8_t, 16> ciphertext) noexcept override;
+        void Encrypt(const std::span<const std::uint8_t, 16> plaintext,
+                     std::span<std::uint8_t, 16> ciphertext) noexcept override;
 
-        virtual void Decrypt(
-            const std::span<const std::uint8_t, 16> ciphertext,
-            std::span<std::uint8_t, 16> plaintext) noexcept override;
+        void Decrypt(const std::span<const std::uint8_t, 16> ciphertext,
+                     std::span<std::uint8_t, 16> plaintext) noexcept override;
 
         bool operator==(const AESIntel &other) const;
         bool operator!=(const AESIntel &other) const;

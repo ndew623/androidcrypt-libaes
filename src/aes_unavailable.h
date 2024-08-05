@@ -34,24 +34,24 @@ struct AESUnavailable : public AESEngine
 {
     AESUnavailable() = default;
     AESUnavailable(const std::span<const std::uint8_t>) {}
-    virtual ~AESUnavailable() = default;
+    ~AESUnavailable() = default;
 
-    virtual AESEngineType GetEngineType() const noexcept override
+    AESEngineType GetEngineType() const noexcept override
     {
         return AESEngineType::Unavailable;
     }
 
-    virtual void SetKey(const std::span<const std::uint8_t>) override {}
+    void SetKey(const std::span<const std::uint8_t>) override {}
 
-    virtual void ClearKeyState() override {}
+    void ClearKeyState() override {}
 
-    virtual void Encrypt(const std::span<const std::uint8_t, 16>,
-                         std::span<std::uint8_t, 16>) noexcept override
+    void Encrypt(const std::span<const std::uint8_t, 16>,
+                 std::span<std::uint8_t, 16>) noexcept override
     {
     }
 
-    virtual void Decrypt(const std::span<const std::uint8_t, 16>,
-                         std::span<std::uint8_t, 16>) noexcept override
+    void Decrypt(const std::span<const std::uint8_t, 16>,
+                 std::span<std::uint8_t, 16>) noexcept override
     {
     }
 

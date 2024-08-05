@@ -53,26 +53,26 @@ class AESUniversal : public AESEngine
         AESUniversal(const std::span<const std::uint8_t> key);
         AESUniversal(const AESUniversal &other) noexcept;
         AESUniversal(AESUniversal &&other) noexcept;
-        virtual ~AESUniversal();
+        ~AESUniversal();
 
         AESUniversal &operator=(const AESUniversal &other);
         AESUniversal &operator=(AESUniversal &&other) noexcept;
 
-        virtual AESEngineType GetEngineType() const noexcept override
+        AESEngineType GetEngineType() const noexcept override
         {
             return AESEngineType::Universal;
         }
 
-        virtual void SetKey(const std::span<const std::uint8_t> key) override;
+        void SetKey(const std::span<const std::uint8_t> key) override;
 
-        virtual void ClearKeyState() override;
+        void ClearKeyState() override;
 
-        virtual void Encrypt(
+        void Encrypt(
             const std::span<const std::uint8_t, AES_Block_Size> plaintext,
             std::span<std::uint8_t, AES_Block_Size> ciphertext) noexcept
             override;
 
-        virtual void Decrypt(
+        void Decrypt(
             const std::span<const std::uint8_t, AES_Block_Size> ciphertext,
             std::span<std::uint8_t, AES_Block_Size> plaintext) noexcept
             override;

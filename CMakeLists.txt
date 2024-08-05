@@ -25,7 +25,7 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "(x86)|(X86)|(amd64)|(AMD64)")
 endif()
 
 # Option to enble speed test in the AES engine tests
-option(TERRA_ENABLE_AES_SPEED_TESTS "Enable AES Engine Speed Tests" ON)
+option(TERRA_ENABLE_AES_SPEED_TESTS "Enable AES Engine Speed Tests" OFF)
 
 add_subdirectory(dependencies)
 add_subdirectory(src)

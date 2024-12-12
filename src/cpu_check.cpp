@@ -32,7 +32,7 @@
 namespace Terra::Crypto::Cipher
 {
 
-#ifdef TERRA_USE_INTEL_AES_INTRINSICS
+#ifdef TERRA_USE_INTEL_INTRINSICS
 
 // Set the feature bit representing AES (25th bit) (0x0200'0000)
 constexpr std::uint32_t Intel_AES_Bit = 0x0200'0000;
@@ -95,13 +95,13 @@ bool CPUSupportsAES_NI()
 
 #endif // _WIN32
 
-#else // TERRA_USE_INTEL_AES_INTRINSICS
+#else // TERRA_USE_INTEL_INTRINSICS
 
 bool CPUSupportsAES_NI()
 {
     return false;
 }
 
-#endif // TERRA_USE_INTEL_AES_INTRINSICS
+#endif // TERRA_USE_INTEL_INTRINSICS
 
 } // namespace Terra::Crypto::Cipher

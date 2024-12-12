@@ -40,7 +40,7 @@
 namespace Terra::Crypto::Cipher
 {
 
-#ifdef TERRA_USE_INTEL_AES_INTRINSICS
+#ifdef TERRA_USE_INTEL_INTRINSICS
 
 // Define the AESIntel class
 class AESIntel : public AESEngine
@@ -99,13 +99,13 @@ class AESIntel : public AESEngine
         __m128i T1, T2, T3, T4;
 };
 
-#else // TERRA_USE_INTEL_AES_INTRINSICS
+#else // TERRA_USE_INTEL_INTRINSICS
 
 // If building without Intel Intrinsics, alias this engine type as unavailable
 
 using AESIntel = AESUnavailable;
 
-#endif // TERRA_USE_INTEL_AES_INTRINSICS
+#endif // TERRA_USE_INTEL_INTRINSICS
 
 } // namespace Terra::Crypto::Cipher
 

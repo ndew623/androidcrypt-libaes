@@ -27,7 +27,7 @@
 #include <terra/stf/adapters/integral_vector.h>
 #include <terra/stf/stf.h>
 
-#ifdef TERRA_USE_INTEL_AES_INTRINSICS
+#ifdef TERRA_USE_INTEL_INTRINSICS
 
 using namespace Terra::Crypto::Cipher;
 
@@ -1179,4 +1179,4 @@ STF_TEST_EXCLUDE(AESIntel, DecryptionSpeedTest128);
 STF_TEST_EXCLUDE(AESIntel, DecryptionSpeedTest256);
 #endif // TERRA_ENABLE_AES_SPEED_TESTS
 
-#endif // TERRA_USE_INTEL_AES_INTRINSICS
+#endif // TERRA_USE_INTEL_INTRINSICS

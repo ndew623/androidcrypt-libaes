@@ -21,16 +21,6 @@ set_target_properties(aes
         CXX_STANDARD_REQUIRED ON
         CXX_EXTENSIONS OFF)
 
-# If requesting clang-tidy, try to look for it
-if(libaes_CLANG_TIDY)
-    find_program(CLANG_TIDY_COMMAND NAMES "clang-tidy")
-    if(CLANG_TIDY_COMMAND)
-        set_target_properties(aes PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
-    else()
-        message(WARNING "Could not find clang-tidy")
-    endif()
-endif()
-
 # Use the following compile options
 target_compile_options(aes
     PRIVATE
@@ -38,9 +28,9 @@ target_compile_options(aes
         $<$<CXX_COMPILER_ID:MSVC>: >)
 
 # Ensure compiler knows if requested to build with Intel intrinsics
-if(TERRA_ENABLE_INTEL_AES_INTRINSICS)
+if(TERRA_ENABLE_INTEL_INTRINSICS)
     # Set the compiler definition
-    target_compile_definitions(aes PRIVATE TERRA_ENABLE_INTEL_AES_INTRINSICS)
+    target_compile_definitions(aes PRIVATE TERRA_ENABLE_INTEL_INTRINSICS)
 
     # Set the compiler flags for some platforms
     target_compile_options(aes
@@ -50,6 +40,16 @@ endif()
 
 # Link against library dependencies
 target_link_libraries(aes PRIVATE Terra::secutil Terra::bitutil)
+
+# If requesting clang-tidy, try to look for it
+if(libaes_CLANG_TIDY)
+    find_program(CLANG_TIDY_COMMAND NAMES "clang-tidy")
+    if(CLANG_TIDY_COMMAND)
+        set_target_properties(aes PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
+    else()
+        message(WARNING "Could not find clang-tidy")
+    endif()
+endif()
 
 # Install target and associated include files
 if(libaes_INSTALL)

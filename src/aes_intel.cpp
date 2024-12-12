@@ -23,7 +23,7 @@
 #include "intel_intrinsics.h"
 
 // Do not attempt to compile unless told to use Intel Intrinsics
-#ifdef TERRA_USE_INTEL_AES_INTRINSICS
+#ifdef TERRA_USE_INTEL_INTRINSICS
 
 #include <cstring>
 #include <terra/secutil/secure_erase.h>
@@ -661,4 +661,4 @@ bool AESIntel::operator!=(const AESIntel &other) const
 
 } // namespace Terra::Crypto::Cipher
 
-#endif // TERRA_USE_INTEL_AES_INTRINSICS
+#endif // TERRA_USE_INTEL_INTRINSICS

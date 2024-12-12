@@ -23,8 +23,8 @@ target_compile_options(test_aes_intel
         $<$<CXX_COMPILER_ID:MSVC>: >)
 
 # Ensure compiler knows if requested to build with Intel intrinsics
-if(TERRA_ENABLE_INTEL_AES_INTRINSICS)
-    target_compile_definitions(test_aes_intel PRIVATE TERRA_ENABLE_INTEL_AES_INTRINSICS)
+if(TERRA_ENABLE_INTEL_INTRINSICS)
+    target_compile_definitions(test_aes_intel PRIVATE TERRA_ENABLE_INTEL_INTRINSICS)
 endif()
 
 # If speed tests are enabled, pass that to the compiler

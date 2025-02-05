@@ -4,6 +4,7 @@ v1.0.2
 
 - Changes to CMake related to use of Intel Intrinsics
 - Changes to #ifdef statements to check for AES-NI support
+- Updated dependencies
 
 v1.0.1
 

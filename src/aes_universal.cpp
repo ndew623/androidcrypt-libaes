@@ -1,7 +1,7 @@
 /*
  *  aes_universal.cpp
  *
- *  Copyright (C) 2024
+ *  Copyright (C) 2024-2025
  *  Terrapane Corporation
  *  All Rights Reserved
  *
@@ -22,7 +22,7 @@
  *      enabling compiler optimizations that will inline constexpr functions.
  *
  *      This implementation of AES is called "universal" as it can operate on
- *      any processor and is not dependent on processor-specific intrinsics.
+ *      any processor and is not dependent on processor-specific features.
  *
  *  Portability Issues:
  *      None.

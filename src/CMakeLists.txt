@@ -27,15 +27,15 @@ target_compile_options(aes
         $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>: -Wpedantic -Wextra -Wall>
         $<$<CXX_COMPILER_ID:MSVC>: >)
 
-# Ensure compiler knows if requested to build with Intel intrinsics
+# Ensure compiler knows if requested to build with Intel Intrinsics
 if(TERRA_ENABLE_INTEL_INTRINSICS)
     # Set the compiler definition
     target_compile_definitions(aes PRIVATE TERRA_ENABLE_INTEL_INTRINSICS)
 
-    # Set the compiler flags for some platforms
+    # Set the compiler flags for some platforms (suppress warnings about -maes not being used)
     target_compile_options(aes
         PRIVATE
-            $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>: -maes>)
+            $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>: -maes -Wno-unused-command-line-argument>)
 endif()
 
 # Link against library dependencies

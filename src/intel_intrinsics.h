@@ -1,7 +1,7 @@
 /*
  *  intel_intrinsics.h
  *
- *  Copyright (C) 2024
+ *  Copyright (C) 2024-2025
  *  Terrapane Corporation
  *  All Rights Reserved
  *
@@ -9,8 +9,8 @@
  *      Paul E. Jones <paulej@packetizer.com>
  *
  *  Description:
- *      This file will check to see if the platform might support intel
- *      intrinsics and set the TERRA_USE_INTEL_INTRINSICS if so, while also
+ *      This file will check to see if the platform might support Intel
+ *      Intrinsics and set the TERRA_USE_INTEL_INTRINSICS if so, while also
  *      including the Intel Intrinsics header file.  If one wants to disable
  *      use of Intel Intrinsics, turn off TERRA_ENABLE_INTEL_INTRINSICS.
  *

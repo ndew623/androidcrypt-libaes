@@ -1,7 +1,7 @@
 /*
  *  aes_intel.h
  *
- *  Copyright (C) 2024
+ *  Copyright (C) 2024-2025
  *  Terrapane Corporation
  *  All Rights Reserved
  *
@@ -11,7 +11,7 @@
  *  Description:
  *      This file defines the AESIntel object which performs encryption and
  *      decryption as specified in FIPS 197 ("Advanced Encryption Standard")
- *      using Intel intrinsics functions.
+ *      using Intel Intrinsics functions.
  *
  *      Reference implementation code:
  *      https://www.intel.com/content/dam/doc/white-paper/advanced-encryption-standard-new-instructions-set-paper.pdf

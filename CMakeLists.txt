@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.21)
 
 # Define the AES Library project
 project(libaes
-        VERSION 1.0.3.0
+        VERSION 1.0.4.0
         DESCRIPTION "AES Cryptography Library"
         LANGUAGES CXX)
 
@@ -19,7 +19,7 @@ option(libaes_INSTALL "Install the AES Library" ON)
 # Determine whether clang-tidy should be used during build
 option(libaes_CLANG_TIDY "Use clang-tidy to perform linting during build" OFF)
 
-# Option to control use of Intel intrinsics (available only on x86/x64)
+# Option to control use of Intel Intrinsics (available only on x86/x64)
 option(TERRA_ENABLE_INTEL_INTRINSICS "Enable Intel AES Intrinsics" ON)
 
 # Option to enable speed test in the AES engine tests

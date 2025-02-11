@@ -1,7 +1,7 @@
 /*
  *  test_aes_intel.cpp
  *
- *  Copyright (C) 2024
+ *  Copyright (C) 2024-2025
  *  Terrapane Corporation
  *  All Rights Reserved
  *
@@ -27,9 +27,9 @@
 #include <terra/stf/adapters/integral_vector.h>
 #include <terra/stf/stf.h>
 
-#ifdef TERRA_USE_INTEL_INTRINSICS
-
 using namespace Terra::Crypto::Cipher;
+
+#ifdef TERRA_USE_INTEL_INTRINSICS
 
 // Test the function that indicated the engine type
 STF_TEST(AESIntel, EngineCheck)
@@ -1178,5 +1178,15 @@ STF_TEST_EXCLUDE(AESIntel, EncryptionSpeedTest256);
 STF_TEST_EXCLUDE(AESIntel, DecryptionSpeedTest128);
 STF_TEST_EXCLUDE(AESIntel, DecryptionSpeedTest256);
 #endif // TERRA_ENABLE_AES_SPEED_TESTS
+
+#else
+
+// If not using Intel Intrinsics, the Intel engine should be unavailable
+STF_TEST(AESIntel, EngineCheck)
+{
+    AESIntel aes;
+
+    STF_ASSERT_EQ(aes.GetEngineType(), AESEngineType::Unavailable);
+}
 
 #endif // TERRA_USE_INTEL_INTRINSICS

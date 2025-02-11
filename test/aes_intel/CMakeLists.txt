@@ -22,7 +22,7 @@ target_compile_options(test_aes_intel
         $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>: -Wpedantic -Wextra -Wall>
         $<$<CXX_COMPILER_ID:MSVC>: >)
 
-# Ensure compiler knows if requested to build with Intel intrinsics
+# Ensure compiler knows if requested to build with Intel Intrinsics
 if(TERRA_ENABLE_INTEL_INTRINSICS)
     target_compile_definitions(test_aes_intel PRIVATE TERRA_ENABLE_INTEL_INTRINSICS)
 endif()

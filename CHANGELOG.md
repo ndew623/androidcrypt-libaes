@@ -1,5 +1,14 @@
 # Change Log
 
+v1.0.5
+
+- Changes required to build on FreeBSD
+- Updated library dependencies
+
+v1.0.4
+
+- Changes for Intel-based Mac to support Intel intrinsics
+
 v1.0.3
 
 - Updated library dependencies

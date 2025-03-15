@@ -20,7 +20,7 @@
  */
 
 #include <cstdint>
-#ifdef __linux__
+#if defined(__linux__) || defined(__FreeBSD__)
 #include <cpuid.h>
 #endif
 #ifdef _WIN32
@@ -55,7 +55,7 @@ bool CPUSupportsAES_NI()
 
 #else
 
-#ifdef __linux__
+#if defined(__linux__) || defined(__FreeBSD__)
 
 bool CPUSupportsAES_NI()
 {
@@ -71,7 +71,7 @@ bool CPUSupportsAES_NI()
     return (ecx & Intel_AES_Bit) != 0;
 }
 
-#else // __linux__
+#else // defined(__linux__) || defined(__FreeBSD__)
 
 #define cpuid(function_id, eax, ebx, ecx, edx) \
     __asm__ __volatile__ ("cpuid": "=a" (eax), "=b" (ebx), "=c" (ecx), \
@@ -91,7 +91,7 @@ bool CPUSupportsAES_NI()
     return (ecx & Intel_AES_Bit) != 0;
 }
 
-#endif // __linux__
+#endif // defined(__linux__) || defined(__FreeBSD__)
 
 #endif // _WIN32
 

@@ -1,5 +1,10 @@
 # Change Log
 
+v1.0.6
+
+- Disable Intel intrinsics if not targeting an Intel processor
+- Updated dependencies
+
 v1.0.5
 
 - Changes required to build on FreeBSD

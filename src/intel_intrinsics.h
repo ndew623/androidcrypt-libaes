@@ -22,7 +22,7 @@
 
 #ifdef TERRA_ENABLE_INTEL_INTRINSICS
 
-#if defined(__AES__) || defined(__AESNI__) || \
+#if defined(__AES__) || defined(__AESNI__) || defined(__i386__) || \
     defined(__x86_64__) || defined(_M_X64) || defined(_M_AMD64)
 
 #ifndef TERRA_USE_INTEL_INTRINSICS

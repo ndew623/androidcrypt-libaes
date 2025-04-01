@@ -19,15 +19,16 @@
  *      None.
  */
 
+#include "intel_intrinsics.h"
+
+#ifdef TERRA_USE_INTEL_INTRINSICS
 #include <cstdint>
-#if defined(__linux__) || defined(__FreeBSD__)
 #include <cpuid.h>
-#endif
 #ifdef _WIN32
 #include <array>
 #include <intrin.h>
 #endif
-#include "intel_intrinsics.h"
+#endif
 
 namespace Terra::Crypto::Cipher
 {

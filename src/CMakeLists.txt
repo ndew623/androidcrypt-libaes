@@ -24,18 +24,19 @@ set_target_properties(aes
 # Use the following compile options
 target_compile_options(aes
     PRIVATE
-        $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>: -Wpedantic -Wextra -Wall>
-        $<$<CXX_COMPILER_ID:MSVC>: >)
+        $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:-Wpedantic -Wextra -Wall>
+        $<$<CXX_COMPILER_ID:MSVC>:>)
 
 # Ensure compiler knows if requested to build with Intel Intrinsics
 if(TERRA_ENABLE_INTEL_INTRINSICS)
     # Set the compiler definition
     target_compile_definitions(aes PRIVATE TERRA_ENABLE_INTEL_INTRINSICS)
 
-    # Set the compiler flags for some platforms (suppress warnings about -maes not being used)
-    target_compile_options(aes
-        PRIVATE
-            $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>: -maes -Wno-unused-command-line-argument>)
+    # Set the compiler flags for some platforms (suppress warnings about -maes not being used on Mac)
+    target_compile_options(aes PRIVATE
+        $<$<AND:$<PLATFORM_ID:Darwin>,$<IN_LIST:${CMAKE_OSX_ARCHITECTURES},x86_64>>:-maes -Wno-unused-command-line-argument>
+        $<$<AND:$<NOT:$<PLATFORM_ID:Darwin>>,$<STREQUAL:${CMAKE_SYSTEM_PROCESSOR},x86_64>>:-maes>
+        $<$<STREQUAL:${CMAKE_SYSTEM_PROCESSOR},i386>:-maes>)
 endif()
 
 # Link against library dependencies

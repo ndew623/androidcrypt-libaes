@@ -19,14 +19,19 @@ option(libaes_INSTALL "Install the AES Library" ON)
 # Determine whether clang-tidy should be used during build
 option(libaes_CLANG_TIDY "Use clang-tidy to perform linting during build" OFF)
 
-# Option to control use of Intel Intrinsics (available only on x86/x64)
-if(APPLE AND CMAKE_OSX_ARCHITECTURES MATCHES "x86_64")
-    option(TERRA_ENABLE_INTEL_INTRINSICS "Enable Intel AES Intrinsics" ON)
-elseif(NOT APPLE AND CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|i386")
-    option(TERRA_ENABLE_INTEL_INTRINSICS "Enable Intel AES Intrinsics" ON)
-else()
-    option(TERRA_ENABLE_INTEL_INTRINSICS "Enable Intel AES Intrinsics" OFF)
+# Does the platform potentially support Intel Intrinsics?
+set(TERRA_CHECK_INTEL_TARGET OFF)
+if(APPLE)
+    if(CMAKE_OSX_ARCHITECTURES MATCHES "x86_64" OR
+       (NOT CMAKE_OSX_ARCHITECTURES AND CMAKE_SYSTEM_PROCESSOR MATCHES "i386|x86_64"))
+        set(TERRA_CHECK_INTEL_TARGET ON)
+    endif()
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|i386")
+    set(TERRA_CHECK_INTEL_TARGET ON)
 endif()
+
+# Option to control use of Intel Intrinsics (available only on x86/x64)
+option(TERRA_ENABLE_INTEL_INTRINSICS "Enable Intel AES Intrinsics" ${TERRA_CHECK_INTEL_TARGET})
 
 # Option to enable speed test in the AES engine tests
 option(TERRA_ENABLE_AES_SPEED_TESTS "Enable AES Engine Speed Tests" OFF)

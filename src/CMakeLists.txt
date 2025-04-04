@@ -32,16 +32,18 @@ if(TERRA_ENABLE_INTEL_INTRINSICS)
     # Set the compiler definition
     target_compile_definitions(aes PRIVATE TERRA_ENABLE_INTEL_INTRINSICS)
 
-    # Set compiler options for some platforms (suppress warnings about -maes not being used on Universal binary)
-    target_compile_options(aes PRIVATE
-        # On Mac, -maes for x86_64 when target architecture not specified
-        $<$<AND:$<PLATFORM_ID:Darwin>,$<STREQUAL:${CMAKE_SYSTEM_PROCESSOR},x86_64>,$<NOT:$<BOOL:${CMAKE_OSX_ARCHITECTURES}>>>:-maes>
-        # On Mac, -maes for explicit single x86_64
-        $<$<AND:$<PLATFORM_ID:Darwin>,$<STREQUAL:${CMAKE_OSX_ARCHITECTURES},x86_64>>:-maes>
-        # On Mac, -maes and warning suppression for universal with x86_64
-        $<$<AND:$<PLATFORM_ID:Darwin>,$<IN_LIST:x86_64,${CMAKE_OSX_ARCHITECTURES}>,$<BOOL:${CMAKE_OSX_ARCHITECTURES}>>:-maes -Wno-unused-command-line-argument>
-        # Other i386 or x86_64 platforms, include -maes
-        $<$<AND:$<NOT:$<PLATFORM_ID:Darwin>>,$<OR:$<STREQUAL:${CMAKE_SYSTEM_PROCESSOR},x86_64>,$<STREQUAL:${CMAKE_SYSTEM_PROCESSOR},i386>>>:-maes>)
+    # Set compiler options for some platforms to include -maes
+    if(DEFINED CMAKE_OSX_ARCHITECTURES AND NOT CMAKE_OSX_ARCHITECTURES STREQUAL "")
+        target_compile_options(aes PRIVATE
+            # On Mac, -maes for explicit single x86_64
+            $<$<AND:$<PLATFORM_ID:Darwin>,$<STREQUAL:${CMAKE_OSX_ARCHITECTURES},x86_64>>:-maes>
+            # On Mac, -maes and warning suppression for universal with x86_64 (excludes single x86_64)
+            $<$<AND:$<PLATFORM_ID:Darwin>,$<IN_LIST:x86_64,${CMAKE_OSX_ARCHITECTURES}>,$<NOT:$<STREQUAL:${CMAKE_OSX_ARCHITECTURES},x86_64>>:-maes -Wno-unused-command-line-argument>)
+    else()
+        target_compile_options(aes PRIVATE
+            # On any platform, -maes for system processors x86_64 or i386
+            $<$<OR:$<STREQUAL:${CMAKE_SYSTEM_PROCESSOR},x86_64>,$<STREQUAL:${CMAKE_SYSTEM_PROCESSOR},i386>>:-maes>)
+    endif()
 endif()
 
 # Link against library dependencies

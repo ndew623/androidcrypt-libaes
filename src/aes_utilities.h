@@ -18,12 +18,19 @@
 
 #pragma once
 
+#include <type_traits>
+#include <limits.h>
 #include <cstdint>
 #include <terra/bitutil/bit_rotation.h>
 #include "aes_tables.h"
 
 namespace
 {
+
+// Define the concept defining an unsigned integer that is 32-bits or larger
+template<typename T>
+concept Unsigned32OrLarger =
+    std::is_unsigned_v<T> && (sizeof(T) * CHAR_BIT >= 32);
 
 /*
  *  GetWordFromBuffer
@@ -48,17 +55,14 @@ namespace
  *  Comments:
  *      None.
  */
-constexpr std::uint_fast32_t GetWordFromBuffer(const std::uint8_t buffer[4],
-                                               const std::size_t offset)
+template<Unsigned32OrLarger T>
+constexpr T GetWordFromBuffer(const std::uint8_t buffer[4],
+                              const std::size_t offset)
 {
-    return (((static_cast<std::uint_fast32_t>(
-                buffer[(offset << 2)    ] << 24)) |
-             (static_cast<std::uint_fast32_t>(
-                buffer[(offset << 2) + 1] << 16)) |
-             (static_cast<std::uint_fast32_t>(
-                buffer[(offset << 2) + 2] <<  8)) |
-             (static_cast<std::uint_fast32_t>(
-                buffer[(offset << 2) + 3]      ))) & 0xffff'ffff);
+    return (((static_cast<T>(buffer[(offset << 2)    ] << 24)) |
+             (static_cast<T>(buffer[(offset << 2) + 1] << 16)) |
+             (static_cast<T>(buffer[(offset << 2) + 2] <<  8)) |
+             (static_cast<T>(buffer[(offset << 2) + 3]      ))) & 0xffff'ffff);
 }
 
 /*
@@ -88,7 +92,8 @@ constexpr std::uint_fast32_t GetWordFromBuffer(const std::uint8_t buffer[4],
  *  Comments:
  *      None.
  */
-constexpr void PutStateColumn(const std::uint_fast32_t state[4],
+template<Unsigned32OrLarger T>
+constexpr void PutStateColumn(const T state[4],
                               const std::size_t column,
                               std::uint8_t ciphertext[16])
 {
@@ -114,12 +119,13 @@ constexpr void PutStateColumn(const std::uint_fast32_t state[4],
  *  Comments:
  *      None.
  */
-constexpr std::uint_fast32_t RotWord(const std::uint_fast32_t word)
+template<Unsigned32OrLarger T>
+constexpr T RotWord(const T word)
 {
     return Terra::BitUtil::RotateLeft(word,
                                       8,
                                       32,
-                                      std::uint_fast32_t(0xffff'ffff));
+                                      T(0xffff'ffff));
 }
 
 /*
@@ -138,7 +144,8 @@ constexpr std::uint_fast32_t RotWord(const std::uint_fast32_t word)
  *  Comments:
  *      None.
  */
-constexpr std::uint_fast32_t SubBytes(const std::uint_fast32_t value)
+template<Unsigned32OrLarger T>
+constexpr T SubBytes(const T value)
 {
     return (Sbox[(value >> 24)       ] << 24) |
            (Sbox[(value >> 16) & 0xff] << 16) |
@@ -163,8 +170,8 @@ constexpr std::uint_fast32_t SubBytes(const std::uint_fast32_t value)
  *  Comments:
  *      None.
  */
-constexpr std::uint_fast32_t AddRoundKey(const std::uint_fast32_t x,
-                                         const std::uint_fast32_t y)
+template<Unsigned32OrLarger T>
+constexpr T AddRoundKey(const T x, const T y)
 {
     return x ^ y;
 }
@@ -191,8 +198,8 @@ constexpr std::uint_fast32_t AddRoundKey(const std::uint_fast32_t x,
  *  Comments:
  *      The constants added to column performs the row shifts.
  */
-constexpr std::uint_fast32_t MixColShiftRow(const std::size_t column,
-                                            const std::uint_fast32_t state[4])
+template<Unsigned32OrLarger T>
+constexpr T MixColShiftRow(const std::size_t column, const T state[4])
 {
     return Enc0[(state[(0 + column) % 4] >> 24)       ] ^
            Enc1[(state[(1 + column) % 4] >> 16) & 0xff] ^
@@ -231,7 +238,8 @@ constexpr std::uint_fast32_t MixColShiftRow(const std::size_t column,
  *      This is used by the decryption round key generation as explained in
  *      section 5.3.5 of FIPS 197.  Refer to the README.md for more detail.
  */
-constexpr std::uint_fast32_t FastInvMixColumn(const std::uint_fast32_t value)
+template<Unsigned32OrLarger T>
+constexpr T FastInvMixColumn(const T value)
 {
     return Dec0[Sbox[(value >> 24)       ]] ^
            Dec1[Sbox[(value >> 16) & 0xff]] ^
@@ -261,9 +269,8 @@ constexpr std::uint_fast32_t FastInvMixColumn(const std::uint_fast32_t value)
  *  Comments:
  *      The constants added to column performs the row shifts.
  */
-constexpr std::uint_fast32_t InvMixColShiftRow(
-                                            const std::size_t column,
-                                            const std::uint_fast32_t state[4])
+template<Unsigned32OrLarger T>
+constexpr T InvMixColShiftRow(const std::size_t column, const T state[4])
 {
     return Dec0[(state[(0 + column) % 4] >> 24)       ] ^
            Dec1[(state[(3 + column) % 4] >> 16) & 0xff] ^

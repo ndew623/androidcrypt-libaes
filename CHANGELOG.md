@@ -1,5 +1,12 @@
 # Change Log
 
+v1.0.7 (in progress)
+
+- Removed inclusion of cpuid.h file for Windows (inadvertently added in 1.0.5
+  while working on FreeBSD support)
+- Modified utility functions to use templates to allow re-used by specific
+  integer types
+
 v1.0.6
 
 - Disable Intel intrinsics if not targeting an Intel processor

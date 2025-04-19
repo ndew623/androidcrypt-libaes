@@ -486,7 +486,7 @@ void AESIntel::Encrypt(
                 const std::span<const std::uint8_t, AES_Block_Size> plaintext,
                 std::span<std::uint8_t, AES_Block_Size> ciphertext) noexcept
 {
-    // Step 1 - AddRoundKey() (i.e., XOR with W[column])
+    // Step 1 - AddRoundKey() (i.e., XOR with W[0])
     T1 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(plaintext.data()));
     T1 = _mm_xor_si128(T1, W[0]);
 

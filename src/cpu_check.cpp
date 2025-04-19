@@ -23,10 +23,11 @@
 
 #ifdef TERRA_USE_INTEL_INTRINSICS
 #include <cstdint>
-#include <cpuid.h>
 #ifdef _WIN32
 #include <array>
 #include <intrin.h>
+#else
+#include <cpuid.h>
 #endif
 #endif
 

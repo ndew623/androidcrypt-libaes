@@ -2,6 +2,7 @@
 
 v1.0.7 (in progress)
 
+- Performance improvement in AESUniversal object
 - Removed inclusion of cpuid.h file for Windows (inadvertently added in 1.0.5
   while working on FreeBSD support)
 - Modified utility functions to use templates to allow re-used by specific

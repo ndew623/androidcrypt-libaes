@@ -59,23 +59,23 @@ template<Unsigned32OrLarger T>
 constexpr T GetWordFromBuffer(const std::uint8_t buffer[4],
                               const std::size_t offset)
 {
-    return (((static_cast<T>(buffer[(offset << 2)    ] << 24)) |
-             (static_cast<T>(buffer[(offset << 2) + 1] << 16)) |
-             (static_cast<T>(buffer[(offset << 2) + 2] <<  8)) |
-             (static_cast<T>(buffer[(offset << 2) + 3]      ))) & 0xffff'ffff);
+    return static_cast<T>(buffer[(offset << 2)    ]) << 24 |
+           static_cast<T>(buffer[(offset << 2) + 1]) << 16 |
+           static_cast<T>(buffer[(offset << 2) + 2]) <<  8 |
+           static_cast<T>(buffer[(offset << 2) + 3]);
 }
 
 /*
  *  PutStateColumn
  *
  *  Description:
- *      This function takes the state array as input and extract the specified
- *      32-bit column, putting that column into the given buffer linearly.
- *      This is the output transformation shown in Figure 3 of FIP 197.
+ *      This function takes the given value from the state array as input
+ *      and puts that column into the given buffer linearly.  This is the
+ *      output transformation shown in Figure 3 of FIP 197.
  *
  *  Parameters:
- *      state [in]
- *          The state array from which to extract the specified column.
+ *      value [in]
+ *          The state array value for specified column.
  *
  *      column [in]
  *          The column in the state array from which values are to be extracted.
@@ -93,14 +93,14 @@ constexpr T GetWordFromBuffer(const std::uint8_t buffer[4],
  *      None.
  */
 template<Unsigned32OrLarger T>
-constexpr void PutStateColumn(const T state[4],
+constexpr void PutStateColumn(const T value,
                               const std::size_t column,
                               std::uint8_t ciphertext[16])
 {
-    ciphertext[(column << 2)    ] = (state[column] >> 24) & 0xff;
-    ciphertext[(column << 2) + 1] = (state[column] >> 16) & 0xff;
-    ciphertext[(column << 2) + 2] = (state[column] >>  8) & 0xff;
-    ciphertext[(column << 2) + 3] = (state[column]      ) & 0xff;
+    ciphertext[(column << 2)    ] = (value >> 24) & 0xff;
+    ciphertext[(column << 2) + 1] = (value >> 16) & 0xff;
+    ciphertext[(column << 2) + 2] = (value >>  8) & 0xff;
+    ciphertext[(column << 2) + 3] = (value      ) & 0xff;
 }
 
 /*
@@ -147,10 +147,76 @@ constexpr T RotWord(const T word)
 template<Unsigned32OrLarger T>
 constexpr T SubBytes(const T value)
 {
-    return (Sbox[(value >> 24)       ] << 24) |
-           (Sbox[(value >> 16) & 0xff] << 16) |
-           (Sbox[(value >>  8) & 0xff] <<  8) |
-           (Sbox[(value      ) & 0xff]      );
+    return static_cast<T>(Sbox[(value >> 24) & 0xff]) << 24 |
+           static_cast<T>(Sbox[(value >> 16) & 0xff]) << 16 |
+           static_cast<T>(Sbox[(value >>  8) & 0xff]) <<  8 |
+           static_cast<T>(Sbox[(value      ) & 0xff]);
+}
+
+/*
+ *  SubBytesShiftRows
+ *
+ *  Description:
+ *      This function perform byte substitution while also shifting rows.
+ *      This is part of the final encryption round.
+ *
+ *  Parameters:
+ *      column
+ *          The column shift value.
+ *
+ *      state [in]
+ *          The state table from which to extract values while doing byte
+ *          substitution using the S-box table.
+ *
+ *  Returns:
+ *      The 32-bit value resulting from the byte substitution following the
+ *      column mixing scheme.
+ *
+ *  Comments:
+ *      None.
+ */
+template<Unsigned32OrLarger T>
+constexpr T SubBytesShiftRows(std::size_t column, const T state[4])
+{
+    return static_cast<T>(Sbox[(state[(0 + column) % 4] >> 24) & 0xff]) << 24 |
+           static_cast<T>(Sbox[(state[(1 + column) % 4] >> 16) & 0xff]) << 16 |
+           static_cast<T>(Sbox[(state[(2 + column) % 4] >>  8) & 0xff]) <<  8 |
+           static_cast<T>(Sbox[(state[(3 + column) % 4]      ) & 0xff]);
+}
+
+/*
+ *  InvSubBytesShiftRows
+ *
+ *  Description:
+ *      This function perform byte inverse substitution while also shifting
+ *      rows.  This is part of the final decryption round.
+ *
+ *  Parameters:
+ *      column
+ *          The column shift value.
+ *
+ *      state [in]
+ *          The state table from which to extract values while doing byte
+ *          substitution using the S-box table.
+ *
+ *  Returns:
+ *      The 32-bit value resulting from the byte substitution following the
+ *      column mixing scheme.
+ *
+ *  Comments:
+ *      None.
+ */
+template<Unsigned32OrLarger T>
+constexpr T InvSubBytesShiftRows(std::size_t column, const T state[4])
+{
+    return static_cast<T>(
+                InverseSbox[(state[(0 + column) % 4] >> 24) & 0xff]) << 24 |
+           static_cast<T>(
+                InverseSbox[(state[(3 + column) % 4] >> 16) & 0xff]) << 16 |
+           static_cast<T>(
+                InverseSbox[(state[(2 + column) % 4] >>  8) & 0xff]) <<  8 |
+           static_cast<T>(
+                InverseSbox[(state[(1 + column) % 4]      ) & 0xff]);
 }
 
 /*
@@ -201,7 +267,7 @@ constexpr T AddRoundKey(const T x, const T y)
 template<Unsigned32OrLarger T>
 constexpr T MixColShiftRow(const std::size_t column, const T state[4])
 {
-    return Enc0[(state[(0 + column) % 4] >> 24)       ] ^
+    return Enc0[(state[(0 + column) % 4] >> 24) & 0xff] ^
            Enc1[(state[(1 + column) % 4] >> 16) & 0xff] ^
            Enc2[(state[(2 + column) % 4] >>  8) & 0xff] ^
            Enc3[(state[(3 + column) % 4]      ) & 0xff];
@@ -241,10 +307,10 @@ constexpr T MixColShiftRow(const std::size_t column, const T state[4])
 template<Unsigned32OrLarger T>
 constexpr T FastInvMixColumn(const T value)
 {
-    return Dec0[Sbox[(value >> 24)       ]] ^
-           Dec1[Sbox[(value >> 16) & 0xff]] ^
-           Dec2[Sbox[(value >>  8) & 0xff]] ^
-           Dec3[Sbox[(value      ) & 0xff]];
+    return Dec0[static_cast<T>(Sbox[(value >> 24) & 0xff])] ^
+           Dec1[static_cast<T>(Sbox[(value >> 16) & 0xff])] ^
+           Dec2[static_cast<T>(Sbox[(value >>  8) & 0xff])] ^
+           Dec3[static_cast<T>(Sbox[(value      ) & 0xff])];
 }
 
 /*
@@ -272,7 +338,7 @@ constexpr T FastInvMixColumn(const T value)
 template<Unsigned32OrLarger T>
 constexpr T InvMixColShiftRow(const std::size_t column, const T state[4])
 {
-    return Dec0[(state[(0 + column) % 4] >> 24)       ] ^
+    return Dec0[(state[(0 + column) % 4] >> 24) & 0xff] ^
            Dec1[(state[(3 + column) % 4] >> 16) & 0xff] ^
            Dec2[(state[(2 + column) % 4] >>  8) & 0xff] ^
            Dec3[(state[(1 + column) % 4]      ) & 0xff];

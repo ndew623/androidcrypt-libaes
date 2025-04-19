@@ -81,8 +81,8 @@ class AESUniversal : public AESEngine
         bool operator!=(const AESUniversal &other) const;
 
     protected:
-        unsigned Nr;                            // Number of encryption rounds
-        unsigned Nk;                            // 32-bit words in cipher key
+        std::size_t Nr;                         // Number of encryption rounds
+        std::size_t Nk;                         // 32-bit words in cipher key
 
         // State array of four columns
         std::uint_fast32_t state[4];

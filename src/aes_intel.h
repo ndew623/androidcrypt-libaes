@@ -87,7 +87,7 @@ class AESIntel : public AESEngine
 
     protected:
         // Number of encryption rounds
-        unsigned Nr;
+        std::size_t Nr;
 
         // Encryption round key schedule array
         __m128i W[Max_Rounds + 1];

@@ -527,33 +527,26 @@ void AESUniversal::Encrypt(
         }
     }
 
-    // Step 3 - Final round
-    state[0] = (Sbox[(alt_state[0] >> 24)       ] << 24) ^
-               (Sbox[(alt_state[1] >> 16) & 0xff] << 16) ^
-               (Sbox[(alt_state[2] >>  8) & 0xff] <<  8) ^
-               (Sbox[(alt_state[3]      ) & 0xff]      ) ^
-               W[(Nr << 2) + 0];
-    state[1] = (Sbox[(alt_state[1] >> 24)       ] << 24) ^
-               (Sbox[(alt_state[2] >> 16) & 0xff] << 16) ^
-               (Sbox[(alt_state[3] >>  8) & 0xff] <<  8) ^
-               (Sbox[(alt_state[0]      ) & 0xff]      ) ^
-               W[(Nr << 2) + 1];
-    state[2] = (Sbox[(alt_state[2] >> 24)       ] << 24) ^
-               (Sbox[(alt_state[3] >> 16) & 0xff] << 16) ^
-               (Sbox[(alt_state[0] >>  8) & 0xff] <<  8) ^
-               (Sbox[(alt_state[1]      ) & 0xff]      ) ^
-               W[(Nr << 2) + 2];
-    state[3] = (Sbox[(alt_state[3] >> 24)       ] << 24) ^
-               (Sbox[(alt_state[0] >> 16) & 0xff] << 16) ^
-               (Sbox[(alt_state[1] >>  8) & 0xff] <<  8) ^
-               (Sbox[(alt_state[2]      ) & 0xff]      ) ^
-               W[(Nr << 2) + 3];
-
-    // Move the state column into the ciphertext buffer
-    PutStateColumn(state, 0, ciphertext.data());
-    PutStateColumn(state, 1, ciphertext.data());
-    PutStateColumn(state, 2, ciphertext.data());
-    PutStateColumn(state, 3, ciphertext.data());
+    // Step 3 - Final round, then move into ciphertext
+    //     While this is a bit verbose, there is no need to store these results
+    //     back into the state array, as the result can be placed directly
+    //     into the ciphertext buffer
+    PutStateColumn(
+        AddRoundKey(SubBytesShiftRows(0, alt_state), W[(Nr << 2) + 0]),
+        0,
+        ciphertext.data());
+    PutStateColumn(
+        AddRoundKey(SubBytesShiftRows(1, alt_state), W[(Nr << 2) + 1]),
+        1,
+        ciphertext.data());
+    PutStateColumn(
+        AddRoundKey(SubBytesShiftRows(2, alt_state), W[(Nr << 2) + 2]),
+        2,
+        ciphertext.data());
+    PutStateColumn(
+        AddRoundKey(SubBytesShiftRows(3, alt_state), W[(Nr << 2) + 3]),
+        3,
+        ciphertext.data());
 }
 
 /*
@@ -687,33 +680,26 @@ void AESUniversal::Decrypt(
         }
     }
 
-    // Step 3 - Final round
-    state[0] = (InverseSbox[(alt_state[0] >> 24)       ] << 24) ^
-               (InverseSbox[(alt_state[3] >> 16) & 0xff] << 16) ^
-               (InverseSbox[(alt_state[2] >>  8) & 0xff] <<  8) ^
-               (InverseSbox[(alt_state[1]      ) & 0xff]      ) ^
-               DW[(Nr << 2) + 0];
-    state[1] = (InverseSbox[(alt_state[1] >> 24)       ] << 24) ^
-               (InverseSbox[(alt_state[0] >> 16) & 0xff] << 16) ^
-               (InverseSbox[(alt_state[3] >>  8) & 0xff] <<  8) ^
-               (InverseSbox[(alt_state[2]      ) & 0xff]      ) ^
-               DW[(Nr << 2) + 1];
-    state[2] = (InverseSbox[(alt_state[2] >> 24)       ] << 24) ^
-               (InverseSbox[(alt_state[1] >> 16) & 0xff] << 16) ^
-               (InverseSbox[(alt_state[0] >>  8) & 0xff] <<  8) ^
-               (InverseSbox[(alt_state[3]      ) & 0xff]      ) ^
-               DW[(Nr << 2) + 2];
-    state[3] = (InverseSbox[(alt_state[3] >> 24)       ] << 24) ^
-               (InverseSbox[(alt_state[2] >> 16) & 0xff] << 16) ^
-               (InverseSbox[(alt_state[1] >>  8) & 0xff] <<  8) ^
-               (InverseSbox[(alt_state[0]      ) & 0xff]      ) ^
-               DW[(Nr << 2) + 3];
-
-    // Move the state column into the plaintext buffer
-    PutStateColumn(state, 0, plaintext.data());
-    PutStateColumn(state, 1, plaintext.data());
-    PutStateColumn(state, 2, plaintext.data());
-    PutStateColumn(state, 3, plaintext.data());
+    // Step 3 - Final round, then move result into plaintext buffer
+    //     While this is a bit verbose, there is no need to store these results
+    //     back into the state array, as the result can be placed directly
+    //     into the plaintext buffer
+    PutStateColumn(
+        AddRoundKey(InvSubBytesShiftRows(0, alt_state), DW[(Nr << 2) + 0]),
+        0,
+        plaintext.data());
+    PutStateColumn(
+        AddRoundKey(InvSubBytesShiftRows(1, alt_state), DW[(Nr << 2) + 1]),
+        1,
+        plaintext.data());
+    PutStateColumn(
+        AddRoundKey(InvSubBytesShiftRows(2, alt_state), DW[(Nr << 2) + 2]),
+        2,
+        plaintext.data());
+    PutStateColumn(
+        AddRoundKey(InvSubBytesShiftRows(3, alt_state), DW[(Nr << 2) + 3]),
+        3,
+        plaintext.data());
 }
 
 /*

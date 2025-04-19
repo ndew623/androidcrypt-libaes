@@ -267,10 +267,10 @@ constexpr T AddRoundKey(const T x, const T y)
 template<Unsigned32OrLarger T>
 constexpr T MixColShiftRow(const std::size_t column, const T state[4])
 {
-    return Enc0[(state[(0 + column) % 4] >> 24) & 0xff] ^
-           Enc1[(state[(1 + column) % 4] >> 16) & 0xff] ^
-           Enc2[(state[(2 + column) % 4] >>  8) & 0xff] ^
-           Enc3[(state[(3 + column) % 4]      ) & 0xff];
+    return static_cast<T>(Enc0[(state[(0 + column) % 4] >> 24) & 0xff] ^
+                          Enc1[(state[(1 + column) % 4] >> 16) & 0xff] ^
+                          Enc2[(state[(2 + column) % 4] >>  8) & 0xff] ^
+                          Enc3[(state[(3 + column) % 4]      ) & 0xff]);
 }
 
 /*
@@ -307,10 +307,10 @@ constexpr T MixColShiftRow(const std::size_t column, const T state[4])
 template<Unsigned32OrLarger T>
 constexpr T FastInvMixColumn(const T value)
 {
-    return Dec0[static_cast<T>(Sbox[(value >> 24) & 0xff])] ^
-           Dec1[static_cast<T>(Sbox[(value >> 16) & 0xff])] ^
-           Dec2[static_cast<T>(Sbox[(value >>  8) & 0xff])] ^
-           Dec3[static_cast<T>(Sbox[(value      ) & 0xff])];
+    return static_cast<T>(Dec0[static_cast<T>(Sbox[(value >> 24) & 0xff])] ^
+                          Dec1[static_cast<T>(Sbox[(value >> 16) & 0xff])] ^
+                          Dec2[static_cast<T>(Sbox[(value >>  8) & 0xff])] ^
+                          Dec3[static_cast<T>(Sbox[(value      ) & 0xff])]);
 }
 
 /*
@@ -338,10 +338,10 @@ constexpr T FastInvMixColumn(const T value)
 template<Unsigned32OrLarger T>
 constexpr T InvMixColShiftRow(const std::size_t column, const T state[4])
 {
-    return Dec0[(state[(0 + column) % 4] >> 24) & 0xff] ^
-           Dec1[(state[(3 + column) % 4] >> 16) & 0xff] ^
-           Dec2[(state[(2 + column) % 4] >>  8) & 0xff] ^
-           Dec3[(state[(1 + column) % 4]      ) & 0xff];
+    return static_cast<T>(Dec0[(state[(0 + column) % 4] >> 24) & 0xff] ^
+                          Dec1[(state[(3 + column) % 4] >> 16) & 0xff] ^
+                          Dec2[(state[(2 + column) % 4] >>  8) & 0xff] ^
+                          Dec3[(state[(1 + column) % 4]      ) & 0xff]);
 }
 
 } // namespace

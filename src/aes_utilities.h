@@ -21,6 +21,8 @@
 #include <type_traits>
 #include <limits.h>
 #include <cstdint>
+#include <array>
+#include <span>
 #include <terra/bitutil/bit_rotation.h>
 #include "aes_tables.h"
 
@@ -56,7 +58,7 @@ concept Unsigned32OrLarger =
  *      None.
  */
 template<Unsigned32OrLarger T>
-constexpr T GetWordFromBuffer(const std::uint8_t buffer[4],
+constexpr T GetWordFromBuffer(const std::span<const std::uint8_t> buffer,
                               const std::size_t offset)
 {
     return static_cast<T>(buffer[(offset << 2)    ]) << 24 |
@@ -95,7 +97,7 @@ constexpr T GetWordFromBuffer(const std::uint8_t buffer[4],
 template<Unsigned32OrLarger T>
 constexpr void PutStateColumn(const T value,
                               const std::size_t column,
-                              std::uint8_t ciphertext[16])
+                              std::span<std::uint8_t, 16> ciphertext)
 {
     ciphertext[(column << 2)    ] = (value >> 24) & 0xff;
     ciphertext[(column << 2) + 1] = (value >> 16) & 0xff;
@@ -176,7 +178,7 @@ constexpr T SubBytes(const T value)
  *      None.
  */
 template<Unsigned32OrLarger T>
-constexpr T SubBytesShiftRows(std::size_t column, const T state[4])
+constexpr T SubBytesShiftRows(std::size_t column, const std::array<T, 4> &state)
 {
     return static_cast<T>(Sbox[(state[(0 + column) % 4] >> 24) & 0xff]) << 24 |
            static_cast<T>(Sbox[(state[(1 + column) % 4] >> 16) & 0xff]) << 16 |
@@ -207,7 +209,8 @@ constexpr T SubBytesShiftRows(std::size_t column, const T state[4])
  *      None.
  */
 template<Unsigned32OrLarger T>
-constexpr T InvSubBytesShiftRows(std::size_t column, const T state[4])
+constexpr T InvSubBytesShiftRows(std::size_t column,
+                                 const std::array<T, 4> &state)
 {
     return static_cast<T>(
                 InverseSbox[(state[(0 + column) % 4] >> 24) & 0xff]) << 24 |
@@ -265,7 +268,8 @@ constexpr T AddRoundKey(const T x, const T y)
  *      The constants added to column performs the row shifts.
  */
 template<Unsigned32OrLarger T>
-constexpr T MixColShiftRow(const std::size_t column, const T state[4])
+constexpr T MixColShiftRow(const std::size_t column,
+                           const std::array<T, 4> &state)
 {
     return static_cast<T>(Enc0[(state[(0 + column) % 4] >> 24) & 0xff] ^
                           Enc1[(state[(1 + column) % 4] >> 16) & 0xff] ^
@@ -336,7 +340,8 @@ constexpr T FastInvMixColumn(const T value)
  *      The constants added to column performs the row shifts.
  */
 template<Unsigned32OrLarger T>
-constexpr T InvMixColShiftRow(const std::size_t column, const T state[4])
+constexpr T InvMixColShiftRow(const std::size_t column,
+                              const std::array<T, 4> &state)
 {
     return static_cast<T>(Dec0[(state[(0 + column) % 4] >> 24) & 0xff] ^
                           Dec1[(state[(3 + column) % 4] >> 16) & 0xff] ^

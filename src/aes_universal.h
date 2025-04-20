@@ -30,6 +30,7 @@
 #include <cstdint>
 #include <cstddef>
 #include <span>
+#include <array>
 #include <terra/crypto/cipher/aes.h>
 
 namespace Terra::Crypto::Cipher
@@ -85,16 +86,16 @@ class AESUniversal : public AESEngine
         std::size_t Nk;                         // 32-bit words in cipher key
 
         // State array of four columns
-        std::uint_fast32_t state[4];
+        std::array<std::uint_fast32_t, Nb> state;
 
         // Alternating state array (temporary use during encryption/decryption)
-        std::uint_fast32_t alt_state[4];
+        std::array<std::uint_fast32_t, Nb> alt_state;
 
         // Encryption round key schedule array
-        std::uint_fast32_t W[Nb * (Max_Rounds + 1)];
+        std::array<std::uint_fast32_t, Nb * (Max_Rounds + 1)> W;
 
         // Decryption round key schedule array
-        std::uint_fast32_t DW[Nb * (Max_Rounds + 1)];
+        std::array<std::uint_fast32_t, Nb * (Max_Rounds + 1)> DW;
 };
 
 } // namespace Terra::Crypto::Cipher

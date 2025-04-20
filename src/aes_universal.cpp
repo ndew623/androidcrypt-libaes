@@ -29,6 +29,7 @@
  */
 
 #include <cstring>
+#include <algorithm>
 #include <terra/secutil/secure_erase.h>
 #include "aes_universal.h"
 #include "aes_tables.h"
@@ -113,8 +114,8 @@ AESUniversal::AESUniversal(const AESUniversal &other) noexcept : AESUniversal()
 {
     Nr = other.Nr;
     Nk = other.Nk;
-    std::memcpy(W, other.W, sizeof(W));
-    std::memcpy(DW, other.DW, sizeof(DW));
+    std::copy(other.W.begin(), other.W.end(), W.begin());
+    std::copy(other.DW.begin(), other.DW.end(), DW.begin());
 }
 
 /*
@@ -141,8 +142,8 @@ AESUniversal::AESUniversal(AESUniversal &&other) noexcept : AESUniversal()
 {
     Nr = other.Nr;
     Nk = other.Nk;
-    std::memcpy(W, other.W, sizeof(W));
-    std::memcpy(DW, other.DW, sizeof(DW));
+    std::copy(other.W.begin(), other.W.end(), W.begin());
+    std::copy(other.DW.begin(), other.DW.end(), DW.begin());
 }
 
 /*
@@ -165,10 +166,10 @@ AESUniversal::~AESUniversal()
 {
     SecUtil::SecureErase(&Nr, sizeof(Nr));
     SecUtil::SecureErase(&Nk, sizeof(Nk));
-    SecUtil::SecureErase(state, sizeof(state));
-    SecUtil::SecureErase(alt_state, sizeof(alt_state));
-    SecUtil::SecureErase(W, sizeof(W));
-    SecUtil::SecureErase(DW, sizeof(DW));
+    SecUtil::SecureErase(state);
+    SecUtil::SecureErase(alt_state);
+    SecUtil::SecureErase(W);
+    SecUtil::SecureErase(DW);
 }
 
 /*
@@ -194,8 +195,8 @@ AESUniversal &AESUniversal::operator=(const AESUniversal &other)
 
     Nr = other.Nr;
     Nk = other.Nk;
-    std::memcpy(W, other.W, sizeof(W));
-    std::memcpy(DW, other.DW, sizeof(DW));
+    std::copy(other.W.begin(), other.W.end(), W.begin());
+    std::copy(other.DW.begin(), other.DW.end(), DW.begin());
 
     return *this;
 }
@@ -224,8 +225,8 @@ AESUniversal &AESUniversal::operator=(AESUniversal &&other) noexcept
 
     Nr = other.Nr;
     Nk = other.Nk;
-    std::memcpy(W, other.W, sizeof(W));
-    std::memcpy(DW, other.DW, sizeof(DW));
+    std::copy(other.W.begin(), other.W.end(), W.begin());
+    std::copy(other.DW.begin(), other.DW.end(), DW.begin());
 
     return *this;
 }
@@ -251,8 +252,8 @@ AESUniversal &AESUniversal::operator=(AESUniversal &&other) noexcept
 void AESUniversal::SetKey(const std::span<const std::uint8_t> key)
 {
     // Zero the key schedule
-    SecUtil::SecureErase(W, sizeof(W));
-    SecUtil::SecureErase(DW, sizeof(DW));
+    SecUtil::SecureErase(W);
+    SecUtil::SecureErase(DW);
 
     // Create the encryption round keys given the key length (W)
     switch (key.size())
@@ -262,10 +263,10 @@ void AESUniversal::SetKey(const std::span<const std::uint8_t> key)
             Nk = 4;
 
             // Fill the first Nk 32-bit words in the round key array W
-            W[0] = GetWordFromBuffer<std::uint_fast32_t>(key.data(), 0);
-            W[1] = GetWordFromBuffer<std::uint_fast32_t>(key.data(), 1);
-            W[2] = GetWordFromBuffer<std::uint_fast32_t>(key.data(), 2);
-            W[3] = GetWordFromBuffer<std::uint_fast32_t>(key.data(), 3);
+            W[0] = GetWordFromBuffer<std::uint_fast32_t>(key, 0);
+            W[1] = GetWordFromBuffer<std::uint_fast32_t>(key, 1);
+            W[2] = GetWordFromBuffer<std::uint_fast32_t>(key, 2);
+            W[3] = GetWordFromBuffer<std::uint_fast32_t>(key, 3);
 
             // Fill the remaining word in the round key array W
             for (std::size_t i = Nk, j = 0; i <= 40; i += Nk, j++)
@@ -283,12 +284,12 @@ void AESUniversal::SetKey(const std::span<const std::uint8_t> key)
             Nk = 6;
 
             // Fill the first Nk words in the round key array W
-            W[0] = GetWordFromBuffer<std::uint_fast32_t>(key.data(), 0);
-            W[1] = GetWordFromBuffer<std::uint_fast32_t>(key.data(), 1);
-            W[2] = GetWordFromBuffer<std::uint_fast32_t>(key.data(), 2);
-            W[3] = GetWordFromBuffer<std::uint_fast32_t>(key.data(), 3);
-            W[4] = GetWordFromBuffer<std::uint_fast32_t>(key.data(), 4);
-            W[5] = GetWordFromBuffer<std::uint_fast32_t>(key.data(), 5);
+            W[0] = GetWordFromBuffer<std::uint_fast32_t>(key, 0);
+            W[1] = GetWordFromBuffer<std::uint_fast32_t>(key, 1);
+            W[2] = GetWordFromBuffer<std::uint_fast32_t>(key, 2);
+            W[3] = GetWordFromBuffer<std::uint_fast32_t>(key, 3);
+            W[4] = GetWordFromBuffer<std::uint_fast32_t>(key, 4);
+            W[5] = GetWordFromBuffer<std::uint_fast32_t>(key, 5);
 
             // Fill the remaining word in the round key array W
             for (std::size_t i = Nk, j = 0; i <= 42; i += Nk, j++)
@@ -312,14 +313,14 @@ void AESUniversal::SetKey(const std::span<const std::uint8_t> key)
             Nk = 8;
 
             // Fill the first Nk words in the round key array W
-            W[0] = GetWordFromBuffer<std::uint_fast32_t>(key.data(), 0);
-            W[1] = GetWordFromBuffer<std::uint_fast32_t>(key.data(), 1);
-            W[2] = GetWordFromBuffer<std::uint_fast32_t>(key.data(), 2);
-            W[3] = GetWordFromBuffer<std::uint_fast32_t>(key.data(), 3);
-            W[4] = GetWordFromBuffer<std::uint_fast32_t>(key.data(), 4);
-            W[5] = GetWordFromBuffer<std::uint_fast32_t>(key.data(), 5);
-            W[6] = GetWordFromBuffer<std::uint_fast32_t>(key.data(), 6);
-            W[7] = GetWordFromBuffer<std::uint_fast32_t>(key.data(), 7);
+            W[0] = GetWordFromBuffer<std::uint_fast32_t>(key, 0);
+            W[1] = GetWordFromBuffer<std::uint_fast32_t>(key, 1);
+            W[2] = GetWordFromBuffer<std::uint_fast32_t>(key, 2);
+            W[3] = GetWordFromBuffer<std::uint_fast32_t>(key, 3);
+            W[4] = GetWordFromBuffer<std::uint_fast32_t>(key, 4);
+            W[5] = GetWordFromBuffer<std::uint_fast32_t>(key, 5);
+            W[6] = GetWordFromBuffer<std::uint_fast32_t>(key, 6);
+            W[7] = GetWordFromBuffer<std::uint_fast32_t>(key, 7);
 
             // Fill the remaining word in the round key array W
             for (std::size_t i = Nk, j = 0; i <= 48; i += Nk, j++)
@@ -347,11 +348,11 @@ void AESUniversal::SetKey(const std::span<const std::uint8_t> key)
     }
 
     // Populate decryption round key array (DW)
-    for (std::uint_fast32_t *dw = DW,
-                            *w = W + (Nr * Nb),
-                            *lower_bound = DW + Nb,
-                            *upper_bound = DW + ((Nr - 1) * Nb);
-         w >= W;
+    for (std::uint_fast32_t *dw = DW.data(),
+                            *w = W.data() + (Nr * Nb),
+                            *lower_bound = DW.data() + Nb,
+                            *upper_bound = DW.data() + ((Nr - 1) * Nb);
+         w >= W.data();
          dw += Nb, w -= Nb)
     {
         if ((dw >= lower_bound) && (dw <= upper_bound))
@@ -390,10 +391,10 @@ void AESUniversal::ClearKeyState()
 {
     SecUtil::SecureErase(&Nr, sizeof(Nr));
     SecUtil::SecureErase(&Nk, sizeof(Nk));
-    SecUtil::SecureErase(state, sizeof(state));
-    SecUtil::SecureErase(alt_state, sizeof(alt_state));
-    SecUtil::SecureErase(W, sizeof(W));
-    SecUtil::SecureErase(DW, sizeof(DW));
+    SecUtil::SecureErase(state);
+    SecUtil::SecureErase(alt_state);
+    SecUtil::SecureErase(W);
+    SecUtil::SecureErase(DW);
 }
 
 /*
@@ -432,14 +433,14 @@ void AESUniversal::Encrypt(
                 std::span<std::uint8_t, AES_Block_Size> ciphertext) noexcept
 {
     // Step 1 - AddRoundKey() (i.e., XOR with W[i])
-    state[0] = AddRoundKey(GetWordFromBuffer<std::uint_fast32_t>(
-                                                plaintext.data(), 0), W[0]);
-    state[1] = AddRoundKey(GetWordFromBuffer<std::uint_fast32_t>(
-                                                plaintext.data(), 1), W[1]);
-    state[2] = AddRoundKey(GetWordFromBuffer<std::uint_fast32_t>(
-                                                plaintext.data(), 2), W[2]);
-    state[3] = AddRoundKey(GetWordFromBuffer<std::uint_fast32_t>(
-                                                plaintext.data(), 3), W[3]);
+    state[0] =
+        AddRoundKey(GetWordFromBuffer<std::uint_fast32_t>(plaintext, 0), W[0]);
+    state[1] =
+        AddRoundKey(GetWordFromBuffer<std::uint_fast32_t>(plaintext, 1), W[1]);
+    state[2] =
+        AddRoundKey(GetWordFromBuffer<std::uint_fast32_t>(plaintext, 2), W[2]);
+    state[3] =
+        AddRoundKey(GetWordFromBuffer<std::uint_fast32_t>(plaintext, 3), W[3]);
 
     // Step 2 - Rounds 1 to Nr - 1 (MixColumns handled via array subscripts)
 
@@ -534,19 +535,19 @@ void AESUniversal::Encrypt(
     PutStateColumn(
         AddRoundKey(SubBytesShiftRows(0, alt_state), W[(Nr << 2) + 0]),
         0,
-        ciphertext.data());
+        ciphertext);
     PutStateColumn(
         AddRoundKey(SubBytesShiftRows(1, alt_state), W[(Nr << 2) + 1]),
         1,
-        ciphertext.data());
+        ciphertext);
     PutStateColumn(
         AddRoundKey(SubBytesShiftRows(2, alt_state), W[(Nr << 2) + 2]),
         2,
-        ciphertext.data());
+        ciphertext);
     PutStateColumn(
         AddRoundKey(SubBytesShiftRows(3, alt_state), W[(Nr << 2) + 3]),
         3,
-        ciphertext.data());
+        ciphertext);
 }
 
 /*
@@ -587,14 +588,14 @@ void AESUniversal::Decrypt(
                 std::span<std::uint8_t, AES_Block_Size> plaintext) noexcept
 {
     // Step 1 - AddRoundKey() (i.e., XOR with DW[0])
-    state[0] = AddRoundKey(GetWordFromBuffer<std::uint_fast32_t>(
-                                                ciphertext.data(), 0), DW[0]);
-    state[1] = AddRoundKey(GetWordFromBuffer<std::uint_fast32_t>(
-                                                ciphertext.data(), 1), DW[1]);
-    state[2] = AddRoundKey(GetWordFromBuffer<std::uint_fast32_t>(
-                                                ciphertext.data(), 2), DW[2]);
-    state[3] = AddRoundKey(GetWordFromBuffer<std::uint_fast32_t>(
-                                                ciphertext.data(), 3), DW[3]);
+    state[0] = AddRoundKey(GetWordFromBuffer<std::uint_fast32_t>(ciphertext, 0),
+                           DW[0]);
+    state[1] = AddRoundKey(GetWordFromBuffer<std::uint_fast32_t>(ciphertext, 1),
+                           DW[1]);
+    state[2] = AddRoundKey(GetWordFromBuffer<std::uint_fast32_t>(ciphertext, 2),
+                           DW[2]);
+    state[3] = AddRoundKey(GetWordFromBuffer<std::uint_fast32_t>(ciphertext, 3),
+                           DW[3]);
 
     // Round 1
     alt_state[0] = AddRoundKey(InvMixColShiftRow(0, state), DW[4]);
@@ -687,19 +688,19 @@ void AESUniversal::Decrypt(
     PutStateColumn(
         AddRoundKey(InvSubBytesShiftRows(0, alt_state), DW[(Nr << 2) + 0]),
         0,
-        plaintext.data());
+        plaintext);
     PutStateColumn(
         AddRoundKey(InvSubBytesShiftRows(1, alt_state), DW[(Nr << 2) + 1]),
         1,
-        plaintext.data());
+        plaintext);
     PutStateColumn(
         AddRoundKey(InvSubBytesShiftRows(2, alt_state), DW[(Nr << 2) + 2]),
         2,
-        plaintext.data());
+        plaintext);
     PutStateColumn(
         AddRoundKey(InvSubBytesShiftRows(3, alt_state), DW[(Nr << 2) + 3]),
         3,
-        plaintext.data());
+        plaintext);
 }
 
 /*
@@ -726,8 +727,8 @@ bool AESUniversal::operator==(const AESUniversal &other) const
 
     if (Nk != other.Nk) return false;
     if (Nr != other.Nr) return false;
-    if (std::memcmp(W, other.W, sizeof(W)) != 0) return false;
-    if (std::memcmp(DW, other.DW, sizeof(DW)) != 0) return false;
+    if (W != other.W) return false;
+    if (DW != other.DW) return false;
 
     return true;
 }

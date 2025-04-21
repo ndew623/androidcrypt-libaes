@@ -17,6 +17,7 @@
  */
 
 #include <cstdint>
+#include <array>
 #include <terra/crypto/cipher/aes_key_wrap.h>
 #include <terra/stf/stf.h>
 
@@ -25,65 +26,24 @@ using namespace Terra::Crypto::Cipher;
 // Test vector in RFC 3394 Section 4.1
 STF_TEST(AESKeyWrap, RFC3394_4_1)
 {
-    const std::uint8_t key[] =
+    const std::array<std::uint8_t, 16> key =
     {
         0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
         0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
     };
-    const std::uint8_t plaintext[] =
+    const std::array<std::uint8_t, 16> plaintext =
     {
         0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
         0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff
     };
-    const std::uint8_t expected_ciphertext[] =
+    const std::array<std::uint8_t, 24> expected_ciphertext =
     {
         0x1f, 0xa6, 0x8b, 0x0a, 0x81, 0x12, 0xb4, 0x47,
         0xae, 0xf3, 0x4b, 0xd8, 0xfb, 0x5a, 0x7b, 0x82,
         0x9d, 0x3e, 0x86, 0x23, 0x71, 0xd2, 0xcf, 0xe5
     };
-    std::uint8_t ciphertext[sizeof(expected_ciphertext)];
-    std::uint8_t plaintext_check[sizeof(plaintext)];
-
-    // Create AESKeyWrap object using the given key and length
-    AESKeyWrap aes_kw(key);
-
-    // Perform the AES Key Wrap
-    aes_kw.Wrap(plaintext, ciphertext);
-
-    // Verify result
-    STF_ASSERT_MEM_EQ(expected_ciphertext,
-                      ciphertext,
-                      sizeof(expected_ciphertext));
-
-    // Perform the key unwrap operation
-    STF_ASSERT_TRUE(aes_kw.Unwrap(ciphertext, plaintext_check));
-
-    // Verify result
-    STF_ASSERT_MEM_EQ(plaintext, plaintext_check, sizeof(plaintext));
-}
-
-// Test vector in RFC 3394 Section 4.2
-STF_TEST(AESKeyWrap, RFC3394_4_2)
-{
-    const std::uint8_t key[] =
-    {
-        0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-        0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
-        0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17
-    };
-    const std::uint8_t plaintext[] =
-    {
-        0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
-        0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff
-    };
-    const std::uint8_t expected_ciphertext[] =
-    {
-        0x96, 0x77, 0x8b, 0x25, 0xae, 0x6c, 0xa4, 0x35,
-        0xf9, 0x2b, 0x5b, 0x97, 0xc0, 0x50, 0xae, 0xd2,
-        0x46, 0x8a, 0xb8, 0xa1, 0x7a, 0xd8, 0x4e, 0x5d
-    };
-    std::uint8_t ciphertext[sizeof(expected_ciphertext)];
-    std::uint8_t plaintext_check[sizeof(plaintext)];
+    std::array<std::uint8_t, expected_ciphertext.size()> ciphertext;
+    std::array<std::uint8_t, plaintext.size()> plaintext_check;
 
     // Create AESKeyWrap object using the given key and length
     AESKeyWrap aes_kw(key);
@@ -92,40 +52,120 @@ STF_TEST(AESKeyWrap, RFC3394_4_2)
     aes_kw.Wrap(plaintext, ciphertext);
 
     // Verify result
-    STF_ASSERT_MEM_EQ(expected_ciphertext,
-                      ciphertext,
-                      sizeof(expected_ciphertext));
+    STF_ASSERT_EQ(expected_ciphertext, ciphertext);
 
     // Perform the key unwrap operation
     STF_ASSERT_TRUE(aes_kw.Unwrap(ciphertext, plaintext_check));
 
     // Verify result
-    STF_ASSERT_MEM_EQ(plaintext, plaintext_check, sizeof(plaintext));
+    STF_ASSERT_EQ(plaintext, plaintext_check);
+}
+
+// Test vector in RFC 3394 Section 4.1
+STF_TEST(AESKeyWrap, RFC3394_4_1_alt_iv)
+{
+    const std::array<std::uint8_t, 16> key =
+    {
+        0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+        0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
+    };
+    const std::array<std::uint8_t, 16> plaintext =
+    {
+        0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
+        0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff
+    };
+    const std::array<std::uint8_t, 24> expected_ciphertext =
+    {
+        0x1f, 0x01, 0x67, 0xd5, 0x1c, 0x8f, 0x6e, 0x4e,
+        0xb1, 0xf0, 0x28, 0x6f, 0x52, 0xcf, 0x9c, 0xf9,
+        0x7d, 0x90, 0x4b, 0xaf, 0x9d, 0xdd, 0xa8, 0xa4
+    };
+    const std::uint8_t alternative_iv[8] =
+    {
+        0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08
+    };
+    std::array<std::uint8_t, expected_ciphertext.size()> ciphertext;
+    std::array<std::uint8_t, plaintext.size()> plaintext_check;
+
+    // Create AESKeyWrap object using the given key and length
+    AESKeyWrap aes_kw(key);
+
+    // Perform the AES key wrap
+    aes_kw.Wrap(plaintext, ciphertext, alternative_iv);
+
+    // Verify result
+    STF_ASSERT_EQ(expected_ciphertext, ciphertext);
+
+    // Perform the key unwrap operation
+    STF_ASSERT_TRUE(
+        aes_kw.Unwrap(ciphertext, plaintext_check, {}, alternative_iv));
+
+    // Verify result
+    STF_ASSERT_EQ(plaintext, plaintext_check);
+}
+
+// Test vector in RFC 3394 Section 4.2
+STF_TEST(AESKeyWrap, RFC3394_4_2)
+{
+    const std::array<std::uint8_t, 24> key =
+    {
+        0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+        0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+        0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17
+    };
+    const std::array<std::uint8_t, 16> plaintext =
+    {
+        0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
+        0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff
+    };
+    const std::array<std::uint8_t, 24> expected_ciphertext =
+    {
+        0x96, 0x77, 0x8b, 0x25, 0xae, 0x6c, 0xa4, 0x35,
+        0xf9, 0x2b, 0x5b, 0x97, 0xc0, 0x50, 0xae, 0xd2,
+        0x46, 0x8a, 0xb8, 0xa1, 0x7a, 0xd8, 0x4e, 0x5d
+    };
+    std::array<std::uint8_t, expected_ciphertext.size()> ciphertext;
+    std::array<std::uint8_t, plaintext.size()> plaintext_check;
+
+    // Create AESKeyWrap object using the given key and length
+    AESKeyWrap aes_kw(key);
+
+    // Perform the AES key wrap
+    aes_kw.Wrap(plaintext, ciphertext);
+
+    // Verify result
+    STF_ASSERT_EQ(expected_ciphertext, ciphertext);
+
+    // Perform the key unwrap operation
+    STF_ASSERT_TRUE(aes_kw.Unwrap(ciphertext, plaintext_check));
+
+    // Verify result
+    STF_ASSERT_EQ(plaintext, plaintext_check);
 }
 
 // Test vector in RFC 3394 Section 4.3
 STF_TEST(AESKeyWrap, RFC3394_4_3)
 {
-    const std::uint8_t key[] =
+    const std::array<std::uint8_t, 32> key =
     {
         0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
         0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
         0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
         0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f
     };
-    const std::uint8_t plaintext[] =
+    const std::array<std::uint8_t, 16> plaintext =
     {
         0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
         0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff
     };
-    const std::uint8_t expected_ciphertext[] =
+    const std::array<std::uint8_t, 24> expected_ciphertext =
     {
         0x64, 0xe8, 0xc3, 0xf9, 0xce, 0x0f, 0x5b, 0xa2,
         0x63, 0xe9, 0x77, 0x79, 0x05, 0x81, 0x8a, 0x2a,
         0x93, 0xc8, 0x19, 0x1e, 0x7d, 0x6e, 0x8a, 0xe7
     };
-    std::uint8_t ciphertext[sizeof(expected_ciphertext)];
-    std::uint8_t plaintext_check[sizeof(plaintext)];
+    std::array<std::uint8_t, expected_ciphertext.size()> ciphertext;
+    std::array<std::uint8_t, plaintext.size()> plaintext_check;
 
     // Create AESKeyWrap object using the given key and length
     AESKeyWrap aes_kw(key);
@@ -134,41 +174,39 @@ STF_TEST(AESKeyWrap, RFC3394_4_3)
     aes_kw.Wrap(plaintext, ciphertext);
 
     // Verify result
-    STF_ASSERT_MEM_EQ(expected_ciphertext,
-                      ciphertext,
-                      sizeof(expected_ciphertext));
+    STF_ASSERT_EQ(expected_ciphertext, ciphertext);
 
     // Perform the key unwrap operation
     STF_ASSERT_TRUE(aes_kw.Unwrap(ciphertext, plaintext_check));
 
     // Verify result
-    STF_ASSERT_MEM_EQ(plaintext, plaintext_check, sizeof(plaintext));
+    STF_ASSERT_EQ(plaintext, plaintext_check);
 }
 
 // Test vector in RFC 3394 Section 4.4
 STF_TEST(AESKeyWrap, RFC3394_4_4)
 {
-    const std::uint8_t key[] =
+    const std::array<std::uint8_t, 24> key =
     {
         0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
         0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
         0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17
     };
-    const std::uint8_t plaintext[] =
+    const std::array<std::uint8_t, 24> plaintext =
     {
         0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
         0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff,
         0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07
     };
-    const std::uint8_t expected_ciphertext[] =
+    const std::array<std::uint8_t, 32> expected_ciphertext =
     {
         0x03, 0x1d, 0x33, 0x26, 0x4e, 0x15, 0xd3, 0x32,
         0x68, 0xf2, 0x4e, 0xc2, 0x60, 0x74, 0x3e, 0xdc,
         0xe1, 0xc6, 0xc7, 0xdd, 0xee, 0x72, 0x5a, 0x93,
         0x6b, 0xa8, 0x14, 0x91, 0x5c, 0x67, 0x62, 0xd2
     };
-    std::uint8_t ciphertext[sizeof(expected_ciphertext)];
-    std::uint8_t plaintext_check[sizeof(plaintext)];
+    std::array<std::uint8_t, expected_ciphertext.size()> ciphertext;
+    std::array<std::uint8_t, plaintext.size()> plaintext_check;
 
     // Create AESKeyWrap object using the given key and length
     AESKeyWrap aes_kw(key);
@@ -177,42 +215,40 @@ STF_TEST(AESKeyWrap, RFC3394_4_4)
     aes_kw.Wrap(plaintext, ciphertext);
 
     // Verify result
-    STF_ASSERT_MEM_EQ(expected_ciphertext,
-                      ciphertext,
-                      sizeof(expected_ciphertext));
+    STF_ASSERT_EQ(expected_ciphertext, ciphertext);
 
     // Perform the key unwrap operation
     STF_ASSERT_TRUE(aes_kw.Unwrap(ciphertext, plaintext_check));
 
     // Verify result
-    STF_ASSERT_MEM_EQ(plaintext, plaintext_check, sizeof(plaintext));
+    STF_ASSERT_EQ(plaintext, plaintext_check);
 }
 
 // Test vector in RFC 3394 Section 4.5
 STF_TEST(AESKeyWrap, RFC3394_4_5)
 {
-    const std::uint8_t key[] =
+    const std::array<std::uint8_t, 32> key =
     {
         0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
         0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
         0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
         0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f
     };
-    const std::uint8_t plaintext[] =
+    const std::array<std::uint8_t, 24> plaintext =
     {
         0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
         0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff,
         0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07
     };
-    const std::uint8_t expected_ciphertext[] =
+    const std::array<std::uint8_t, 32> expected_ciphertext =
     {
         0xa8, 0xf9, 0xbc, 0x16, 0x12, 0xc6, 0x8b, 0x3f,
         0xf6, 0xe6, 0xf4, 0xfb, 0xe3, 0x0e, 0x71, 0xe4,
         0x76, 0x9c, 0x8b, 0x80, 0xa3, 0x2c, 0xb8, 0x95,
         0x8c, 0xd5, 0xd1, 0x7d, 0x6b, 0x25, 0x4d, 0xa1
     };
-    std::uint8_t ciphertext[sizeof(expected_ciphertext)];
-    std::uint8_t plaintext_check[sizeof(plaintext)];
+    std::array<std::uint8_t, expected_ciphertext.size()> ciphertext;
+    std::array<std::uint8_t, plaintext.size()> plaintext_check;
 
     // Create AESKeyWrap object using the given key and length
     AESKeyWrap aes_kw(key);
@@ -221,35 +257,33 @@ STF_TEST(AESKeyWrap, RFC3394_4_5)
     aes_kw.Wrap(plaintext, ciphertext);
 
     // Verify result
-    STF_ASSERT_MEM_EQ(expected_ciphertext,
-                      ciphertext,
-                      sizeof(expected_ciphertext));
+    STF_ASSERT_EQ(expected_ciphertext, ciphertext);
 
     // Perform the key unwrap operation
     STF_ASSERT_TRUE(aes_kw.Unwrap(ciphertext, plaintext_check));
 
     // Verify result
-    STF_ASSERT_MEM_EQ(plaintext, plaintext_check, sizeof(plaintext));
+    STF_ASSERT_EQ(plaintext, plaintext_check);
 }
 
 // Test vector in RFC 3394 Section 4.6
 STF_TEST(AESKeyWrap, RFC3394_4_6)
 {
-    const std::uint8_t key[] =
+    const std::array<std::uint8_t, 32> key =
     {
         0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
         0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
         0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
         0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f
     };
-    const std::uint8_t plaintext[] =
+    const std::array<std::uint8_t, 32> plaintext =
     {
         0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
         0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff,
         0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
         0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
     };
-    const std::uint8_t expected_ciphertext[] =
+    const std::array<std::uint8_t, 40> expected_ciphertext =
     {
         0x28, 0xc9, 0xf4, 0x04, 0xc4, 0xb8, 0x10, 0xf4,
         0xcb, 0xcc, 0xb3, 0x5c, 0xfb, 0x87, 0xf8, 0x26,
@@ -257,8 +291,8 @@ STF_TEST(AESKeyWrap, RFC3394_4_6)
         0xcb, 0xc7, 0xf0, 0xe7, 0x1a, 0x99, 0xf4, 0x3b,
         0xfb, 0x98, 0x8b, 0x9b, 0x7a, 0x02, 0xdd, 0x21
     };
-    std::uint8_t ciphertext[sizeof(expected_ciphertext)];
-    std::uint8_t plaintext_check[sizeof(plaintext)];
+    std::array<std::uint8_t, expected_ciphertext.size()> ciphertext;
+    std::array<std::uint8_t, plaintext.size()> plaintext_check;
 
     // Create AESKeyWrap object using the given key and length
     AESKeyWrap aes_kw(key);
@@ -267,42 +301,40 @@ STF_TEST(AESKeyWrap, RFC3394_4_6)
     aes_kw.Wrap(plaintext, ciphertext);
 
     // Verify result
-    STF_ASSERT_MEM_EQ(expected_ciphertext,
-                      ciphertext,
-                      sizeof(expected_ciphertext));
+    STF_ASSERT_EQ(expected_ciphertext, ciphertext);
 
     // Perform the key unwrap operation
     STF_ASSERT_TRUE(aes_kw.Unwrap(ciphertext, plaintext_check));
 
     // Verify result
-    STF_ASSERT_MEM_EQ(plaintext, plaintext_check, sizeof(plaintext));
+    STF_ASSERT_EQ(plaintext, plaintext_check);
 }
 
 // Test vector in RFC 5649 Section 6, 20-octet wrapped key
 STF_TEST(AESKeyWrapWithPadding, RFC5649_6_20)
 {
-    const std::uint8_t key[] =
+    const std::array<std::uint8_t, 24> key =
     {
         0x58, 0x40, 0xdf, 0x6e, 0x29, 0xb0, 0x2a, 0xf1,
         0xab, 0x49, 0x3b, 0x70, 0x5b, 0xf1, 0x6e, 0xa1,
         0xae, 0x83, 0x38, 0xf4, 0xdc, 0xc1, 0x76, 0xa8
     };
-    const std::uint8_t plaintext[] =
+    const std::array<std::uint8_t, 20> plaintext =
     {
         0xc3, 0x7b, 0x7e, 0x64, 0x92, 0x58, 0x43, 0x40,
         0xbe, 0xd1, 0x22, 0x07, 0x80, 0x89, 0x41, 0x15,
         0x50, 0x68, 0xf7, 0x38
     };
-    const std::uint8_t expected_ciphertext[] =
+    const std::array<std::uint8_t, 32> expected_ciphertext =
     {
         0x13, 0x8b, 0xde, 0xaa, 0x9b, 0x8f, 0xa7, 0xfc,
         0x61, 0xf9, 0x77, 0x42, 0xe7, 0x22, 0x48, 0xee,
         0x5a, 0xe6, 0xae, 0x53, 0x60, 0xd1, 0xae, 0x6a,
         0x5f, 0x54, 0xf3, 0x73, 0xfa, 0x54, 0x3b, 0x6a
     };
-    std::uint8_t ciphertext[sizeof(expected_ciphertext)];
+    std::array<std::uint8_t, expected_ciphertext.size()> ciphertext;
     std::size_t ciphertext_length;
-    std::uint8_t plaintext_check[sizeof(expected_ciphertext) - 8];
+    std::array<std::uint8_t, expected_ciphertext.size() - 8> plaintext_check;
     std::size_t plaintext_check_length;
 
     // Create AESKeyWrap object using the given key and length
@@ -312,45 +344,45 @@ STF_TEST(AESKeyWrapWithPadding, RFC5649_6_20)
     ciphertext_length = aes_kw.WrapWithPadding(plaintext, ciphertext);
 
     // Verify the expected ciphertext length
-    STF_ASSERT_EQ(sizeof(expected_ciphertext), ciphertext_length);
+    STF_ASSERT_EQ(expected_ciphertext.size(), ciphertext_length);
 
     // Verify result
-    STF_ASSERT_MEM_EQ(expected_ciphertext,
-                      ciphertext,
-                      sizeof(expected_ciphertext));
+    STF_ASSERT_EQ(expected_ciphertext, ciphertext);
 
     // Perform the key unwrap operation
     plaintext_check_length = aes_kw.UnwrapWithPadding(ciphertext,
                                                       plaintext_check);
 
     // Verify the expected plaintext length
-    STF_ASSERT_EQ(sizeof(plaintext), plaintext_check_length);
+    STF_ASSERT_EQ(plaintext.size(), plaintext_check_length);
 
     // Verify result
-    STF_ASSERT_MEM_EQ(plaintext, plaintext_check, sizeof(plaintext));
+    STF_ASSERT_MEM_EQ(plaintext.data(),
+                      plaintext_check.data(),
+                      plaintext.size());
 }
 
 // Test vector in RFC 5649 Section 6, 7-octet wrapped key
 STF_TEST(AESKeyWrapWithPadding, RFC5649_6_7)
 {
-    const std::uint8_t key[] =
+    const std::array<std::uint8_t, 24> key =
     {
         0x58, 0x40, 0xdf, 0x6e, 0x29, 0xb0, 0x2a, 0xf1,
         0xab, 0x49, 0x3b, 0x70, 0x5b, 0xf1, 0x6e, 0xa1,
         0xae, 0x83, 0x38, 0xf4, 0xdc, 0xc1, 0x76, 0xa8
     };
-    const std::uint8_t plaintext[] =
+    const std::array<std::uint8_t, 7> plaintext =
     {
         0x46, 0x6f, 0x72, 0x50, 0x61, 0x73, 0x69
     };
-    const std::uint8_t expected_ciphertext[] =
+    const std::array<std::uint8_t, 16> expected_ciphertext =
     {
         0xaf, 0xbe, 0xb0, 0xf0, 0x7d, 0xfb, 0xf5, 0x41,
         0x92, 0x00, 0xf2, 0xcc, 0xb5, 0x0b, 0xb2, 0x4f
     };
-    std::uint8_t ciphertext[sizeof(expected_ciphertext)];
+    std::array<std::uint8_t, 16> ciphertext;
     std::size_t ciphertext_length;
-    std::uint8_t plaintext_check[sizeof(expected_ciphertext) - 8];
+    std::array<std::uint8_t, expected_ciphertext.size() - 8> plaintext_check;
     std::size_t plaintext_check_length;
 
     // Create AESKeyWrap object using the given key and length
@@ -360,34 +392,34 @@ STF_TEST(AESKeyWrapWithPadding, RFC5649_6_7)
     ciphertext_length = aes_kw.WrapWithPadding(plaintext, ciphertext);
 
     // Verify the expected ciphertext length
-    STF_ASSERT_EQ(sizeof(expected_ciphertext), ciphertext_length);
+    STF_ASSERT_EQ(expected_ciphertext.size(), ciphertext_length);
 
     // Verify result
-    STF_ASSERT_MEM_EQ(expected_ciphertext,
-                      ciphertext,
-                      sizeof(expected_ciphertext));
+    STF_ASSERT_EQ(expected_ciphertext, ciphertext);
 
     // Perform the key unwrap operation
     plaintext_check_length = aes_kw.UnwrapWithPadding(ciphertext,
                                                       plaintext_check);
 
     // Verify the expected plaintext length
-    STF_ASSERT_EQ(sizeof(plaintext), plaintext_check_length);
+    STF_ASSERT_EQ(plaintext.size(), plaintext_check_length);
 
     // Verify result
-    STF_ASSERT_MEM_EQ(plaintext, plaintext_check, sizeof(plaintext));
+    STF_ASSERT_MEM_EQ(plaintext.data(),
+                      plaintext_check.data(),
+                      plaintext.size());
 }
 
 // Test vector for RFC 5649, Known Test Vector using 192-bit encryption key
 STF_TEST(AESKeyWrapWithPadding, Extra)
 {
-    const std::uint8_t key[] =
+    const std::array<std::uint8_t, 24> key =
     {
         0x58, 0x40, 0xdf, 0x6e, 0x29, 0xb0, 0x2a, 0xf1,
         0xab, 0x49, 0x3b, 0x70, 0x5b, 0xf1, 0x6e, 0xa1,
         0xae, 0x83, 0x38, 0xf4, 0xdc, 0xc1, 0x76, 0xa8
     };
-    const std::uint8_t plaintext[] =
+    const std::array<std::uint8_t, 283> plaintext =
     {
         0xc3, 0x7b, 0x7e, 0x64, 0x92, 0x58, 0x43, 0x40,
         0xbe, 0xd1, 0x22, 0x07, 0x80, 0x89, 0x41, 0x15,
@@ -426,7 +458,7 @@ STF_TEST(AESKeyWrapWithPadding, Extra)
         0xbe, 0xd1, 0x22, 0x07, 0x80, 0x89, 0x41, 0x15,
         0x50, 0x68, 0xf7
     };
-    const std::uint8_t expected_ciphertext[] =
+    const std::array<std::uint8_t, 296> expected_ciphertext =
     {
         0xca, 0xbf, 0xf3, 0x9e, 0xec, 0x5f, 0xf3, 0x2e,
         0x4d, 0xc4, 0x6e, 0x81, 0xde, 0xaa, 0x98, 0xe2,
@@ -466,9 +498,9 @@ STF_TEST(AESKeyWrapWithPadding, Extra)
         0x78, 0x27, 0x80, 0x3b, 0x6b, 0x44, 0xa5, 0x1f,
         0x24, 0x8b, 0xd5, 0x24, 0x61, 0xc4, 0xf8, 0xdf
     };
-    std::uint8_t ciphertext[sizeof(expected_ciphertext)];
+    std::array<std::uint8_t, expected_ciphertext.size()> ciphertext;
     std::size_t ciphertext_length;
-    std::uint8_t plaintext_check[sizeof(expected_ciphertext) - 8];
+    std::array<std::uint8_t, expected_ciphertext.size() - 8> plaintext_check;
     std::size_t plaintext_check_length;
 
     // Create AESKeyWrap object using the given key and length
@@ -478,42 +510,42 @@ STF_TEST(AESKeyWrapWithPadding, Extra)
     ciphertext_length = aes_kw.WrapWithPadding(plaintext, ciphertext);
 
     // Verify the expected ciphertext length
-    STF_ASSERT_EQ(sizeof(expected_ciphertext), ciphertext_length);
+    STF_ASSERT_EQ(expected_ciphertext.size(), ciphertext_length);
 
     // Verify result
-    STF_ASSERT_MEM_EQ(expected_ciphertext,
-                      ciphertext,
-                      sizeof(expected_ciphertext));
+    STF_ASSERT_EQ(expected_ciphertext, ciphertext);
 
     // Perform the key unwrap operation
     plaintext_check_length = aes_kw.UnwrapWithPadding(ciphertext,
                                                       plaintext_check);
 
     // Verify the expected plaintext length
-    STF_ASSERT_EQ(sizeof(plaintext), plaintext_check_length);
+    STF_ASSERT_EQ(plaintext.size(), plaintext_check_length);
 
     // Verify result
-    STF_ASSERT_MEM_EQ(plaintext, plaintext_check, sizeof(plaintext));
+    STF_ASSERT_MEM_EQ(plaintext.data(),
+                      plaintext_check.data(),
+                      plaintext.size());
 }
 
 // Test vector for RFC 5649; single octet plaintext
 STF_TEST(AESKeyWrapWithPadding, SingleOctetPlaintext)
 {
-    const std::uint8_t key[] =
+    const std::array<std::uint8_t, 24> key =
     {
         0x25, 0x40, 0xdf, 0x6e, 0x29, 0xb0, 0x2a, 0xf1,
         0xab, 0x49, 0x3b, 0x70, 0x5b, 0xf1, 0x6e, 0xa1,
         0xae, 0x83, 0x38, 0xf4, 0xdc, 0xc1, 0x76, 0xa8
     };
-    const std::uint8_t plaintext[] = { 0xc3 };
-    const std::uint8_t expected_ciphertext[] =
+    const std::array<std::uint8_t, 1> plaintext = { 0xc3 };
+    const std::array<std::uint8_t, 16> expected_ciphertext =
     {
         0xb3, 0x0f, 0x2e, 0x31, 0x86, 0xf6, 0x18, 0x54,
         0x7e, 0x9a, 0x17, 0xdc, 0x8a, 0xa6, 0xcd, 0x3a
     };
-    std::uint8_t ciphertext[sizeof(plaintext) + 16];
+    std::array<std::uint8_t, expected_ciphertext.size()> ciphertext;
     std::size_t ciphertext_length;
-    std::uint8_t plaintext_check[sizeof(ciphertext) - 8];
+    std::array<std::uint8_t, ciphertext.size() - 8> plaintext_check;
     std::size_t plaintext_check_length;
 
     // Create AESKeyWrap object using the given key and length
@@ -523,45 +555,44 @@ STF_TEST(AESKeyWrapWithPadding, SingleOctetPlaintext)
     ciphertext_length = aes_kw.WrapWithPadding(plaintext, ciphertext);
 
     // Verify the expected ciphertext length
-    STF_ASSERT_EQ(sizeof(expected_ciphertext), ciphertext_length);
+    STF_ASSERT_EQ(expected_ciphertext.size(), ciphertext_length);
 
     // Verify result
-    STF_ASSERT_MEM_EQ(expected_ciphertext,
-                      ciphertext,
-                      sizeof(expected_ciphertext));
+    STF_ASSERT_EQ(expected_ciphertext, ciphertext);
 
     // Perform the key unwrap operation
     plaintext_check_length =
-        aes_kw.UnwrapWithPadding({ciphertext, ciphertext_length},
-                                 plaintext_check);
+        aes_kw.UnwrapWithPadding(ciphertext, plaintext_check);
 
     // Verify the expected plaintext length
-    STF_ASSERT_EQ(sizeof(plaintext), plaintext_check_length);
+    STF_ASSERT_EQ(plaintext.size(), plaintext_check_length);
 
     // Verify result
-    STF_ASSERT_MEM_EQ(plaintext, plaintext_check, sizeof(plaintext));
+    STF_ASSERT_MEM_EQ(plaintext.data(),
+                      plaintext_check.data(),
+                      plaintext.size());
 }
 
 // Test vector for RFC 5649; Eight octets of plaintext
 STF_TEST(AESKeyWrapWithPadding, EightOctetPlaintext)
 {
-    const std::uint8_t key[] =
+    const std::array<std::uint8_t, 16> key =
     {
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
     };
-    const std::uint8_t plaintext[] =
+    const std::array<std::uint8_t, 8> plaintext =
     {
         0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07
     };
-    const std::uint8_t expected_ciphertext[] =
+    const std::array<std::uint8_t, 16> expected_ciphertext =
     {
         0x01, 0xff, 0x4c, 0x43, 0x0c, 0xdf, 0x3d, 0x2d,
         0x81, 0x5b, 0x09, 0x72, 0xb2, 0x3d, 0x7c, 0x35
     };
-    std::uint8_t ciphertext[sizeof(plaintext) + 16];
+    std::array<std::uint8_t, 16> ciphertext;
     std::size_t ciphertext_length;
-    std::uint8_t plaintext_check[sizeof(ciphertext) - 8];
+    std::array<std::uint8_t, ciphertext.size() - 8> plaintext_check;
     std::size_t plaintext_check_length;
 
     // Create AESKeyWrap object using the given key and length
@@ -571,47 +602,46 @@ STF_TEST(AESKeyWrapWithPadding, EightOctetPlaintext)
     ciphertext_length = aes_kw.WrapWithPadding(plaintext, ciphertext);
 
     // Verify the expected ciphertext length
-    STF_ASSERT_EQ(sizeof(expected_ciphertext), ciphertext_length);
+    STF_ASSERT_EQ(expected_ciphertext.size(), ciphertext_length);
 
     // Verify result
-    STF_ASSERT_MEM_EQ(expected_ciphertext,
-                      ciphertext,
-                      sizeof(expected_ciphertext));
+    STF_ASSERT_EQ(expected_ciphertext, ciphertext);
 
     // Perform the key unwrap operation
     plaintext_check_length =
-        aes_kw.UnwrapWithPadding({ciphertext, ciphertext_length},
-                                 plaintext_check);
+        aes_kw.UnwrapWithPadding(ciphertext, plaintext_check);
 
     // Verify the expected plaintext length
-    STF_ASSERT_EQ(sizeof(plaintext), plaintext_check_length);
+    STF_ASSERT_EQ(plaintext.size(), plaintext_check_length);
 
     // Verify result
-    STF_ASSERT_MEM_EQ(plaintext, plaintext_check, sizeof(plaintext));
+    STF_ASSERT_MEM_EQ(plaintext.data(),
+                      plaintext_check.data(),
+                      plaintext.size());
 }
 
 // Test vector for RFC 5649; fifteen octets of plaintext
 STF_TEST(AESKeyWrapWithPadding, FifteenOctetPlaintext)
 {
-    const std::uint8_t key[] =
+    const std::array<std::uint8_t, 24> key =
     {
         0x25, 0x40, 0xdf, 0x6e, 0x29, 0xb0, 0x2a, 0xf1,
         0xab, 0x49, 0x3b, 0x70, 0x5b, 0xf1, 0x6e, 0xa1,
         0xae, 0x83, 0x38, 0xf4, 0xdc, 0xc1, 0x76, 0xa8
     };
-    const std::uint8_t plaintext[] = {
+    const std::array<std::uint8_t, 15> plaintext = {
         0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
         0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee
     };
-    const std::uint8_t expected_ciphertext[] =
+    const std::array<std::uint8_t, 24> expected_ciphertext =
     {
         0x5e, 0xba, 0x5a, 0xea, 0xe8, 0x3d, 0xb9, 0x9d,
         0x0d, 0x76, 0x8c, 0x7a, 0x3b, 0xf2, 0x52, 0x86,
         0xc7, 0xc4, 0x22, 0x6a, 0x27, 0xa0, 0x9d, 0x2f
     };
-    std::uint8_t ciphertext[sizeof(plaintext) + 16];
+    std::array<std::uint8_t, expected_ciphertext.size()> ciphertext;
     std::size_t ciphertext_length;
-    std::uint8_t plaintext_check[sizeof(ciphertext) - 8];
+    std::array<std::uint8_t, ciphertext.size() - 8> plaintext_check;
     std::size_t plaintext_check_length;
 
     // Create AESKeyWrap object using the given key and length
@@ -621,47 +651,46 @@ STF_TEST(AESKeyWrapWithPadding, FifteenOctetPlaintext)
     ciphertext_length = aes_kw.WrapWithPadding(plaintext, ciphertext);
 
     // Verify the expected ciphertext length
-    STF_ASSERT_EQ(sizeof(expected_ciphertext), ciphertext_length);
+    STF_ASSERT_EQ(expected_ciphertext.size(), ciphertext_length);
 
     // Verify result
-    STF_ASSERT_MEM_EQ(expected_ciphertext,
-                      ciphertext,
-                      sizeof(expected_ciphertext));
+    STF_ASSERT_EQ(expected_ciphertext, ciphertext);
 
     // Perform the key unwrap operation
     plaintext_check_length =
-        aes_kw.UnwrapWithPadding({ciphertext, ciphertext_length},
-                                 plaintext_check);
+        aes_kw.UnwrapWithPadding(ciphertext, plaintext_check);
 
     // Verify the expected plaintext length
-    STF_ASSERT_EQ(sizeof(plaintext), plaintext_check_length);
+    STF_ASSERT_EQ(plaintext.size(), plaintext_check_length);
 
     // Verify result
-    STF_ASSERT_MEM_EQ(plaintext, plaintext_check, sizeof(plaintext));
+    STF_ASSERT_MEM_EQ(plaintext.data(),
+                      plaintext_check.data(),
+                      plaintext.size());
 }
 
 // Test vector for RFC 5649; Sixteen octets of plaintext
 STF_TEST(AESKeyWrapWithPadding, SixteenOctetPlaintext)
 {
-    const std::uint8_t key[] =
+    const std::array<std::uint8_t, 24> key =
     {
         0x25, 0x40, 0xdf, 0x6e, 0x29, 0xb0, 0x2a, 0xf1,
         0xab, 0x49, 0x3b, 0x70, 0x5b, 0xf1, 0x6e, 0xa1,
         0xae, 0x83, 0x38, 0xf4, 0xdc, 0xc1, 0x76, 0xa8
     };
-    const std::uint8_t plaintext[] = {
+    const std::array<std::uint8_t, 16> plaintext = {
         0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
         0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff
     };
-    const std::uint8_t expected_ciphertext[] =
+    const std::array<std::uint8_t, 24> expected_ciphertext =
     {
         0x5b, 0xe9, 0x8c, 0xdd, 0x32, 0xbd, 0xe2, 0xd3,
         0x3e, 0xf1, 0xd9, 0x5e, 0x32, 0x61, 0x57, 0x9d,
         0x4a, 0xeb, 0x08, 0xfc, 0x53, 0x8e, 0x14, 0xef
     };
-    std::uint8_t ciphertext[sizeof(plaintext) + 16];
+    std::array<std::uint8_t, expected_ciphertext.size()> ciphertext;
     std::size_t ciphertext_length;
-    std::uint8_t plaintext_check[sizeof(ciphertext) - 8];
+    std::array<std::uint8_t, ciphertext.size() - 8> plaintext_check;
     std::size_t plaintext_check_length;
 
     // Create AESKeyWrap object using the given key and length
@@ -671,21 +700,20 @@ STF_TEST(AESKeyWrapWithPadding, SixteenOctetPlaintext)
     ciphertext_length = aes_kw.WrapWithPadding(plaintext, ciphertext);
 
     // Verify the expected ciphertext length
-    STF_ASSERT_EQ(sizeof(expected_ciphertext), ciphertext_length);
+    STF_ASSERT_EQ(expected_ciphertext.size(), ciphertext_length);
 
     // Verify result
-    STF_ASSERT_MEM_EQ(expected_ciphertext,
-                      ciphertext,
-                      sizeof(expected_ciphertext));
+    STF_ASSERT_EQ(expected_ciphertext, ciphertext);
 
     // Perform the key unwrap operation
     plaintext_check_length =
-        aes_kw.UnwrapWithPadding({ciphertext, ciphertext_length},
-                                 plaintext_check);
+        aes_kw.UnwrapWithPadding(ciphertext, plaintext_check);
 
     // Verify the expected plaintext length
-    STF_ASSERT_EQ(sizeof(plaintext), plaintext_check_length);
+    STF_ASSERT_EQ(plaintext.size(), plaintext_check_length);
 
     // Verify result
-    STF_ASSERT_MEM_EQ(plaintext, plaintext_check, sizeof(plaintext));
+    STF_ASSERT_MEM_EQ(plaintext.data(),
+                      plaintext_check.data(),
+                      plaintext.size());
 }

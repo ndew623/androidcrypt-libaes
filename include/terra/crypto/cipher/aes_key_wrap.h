@@ -26,6 +26,7 @@
 #include <cstdint>
 #include <memory>
 #include <span>
+#include <array>
 #include "aes.h"
 
 namespace Terra::Crypto::Cipher
@@ -35,13 +36,13 @@ class AESKeyWrap
 {
     public:
         // The default IV per RFC 3394
-        static constexpr std::uint8_t AES_Key_Wrap_Default_IV[8] =
+        static constexpr std::array<std::uint8_t, 8> AES_Key_Wrap_Default_IV =
         {
             0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6
         };
 
         // AIV per RFC 5649
-        static constexpr std::uint8_t Alternative_IV[4] =
+        static constexpr std::array<std::uint8_t, 4> Alternative_IV =
         {
             0xA6, 0x59, 0x59, 0xA6
         };
@@ -75,20 +76,22 @@ class AESKeyWrap
     protected:
         AES aes;                                // AES block cipher
 
-        std::size_t i, j, k;                    // Loop counter
+        std::size_t i, j, k;                    // Loop counters
         std::size_t n;                          // Number of 64-bit blocks
         std::size_t t, tt;                      // Step counters
         std::uint8_t *A;                        // Integrity check register
-        std::uint8_t B[16];                     // Buffer to encrypt/decrypt
+        std::array<std::uint8_t, 16> B;         // Buffer to encrypt/decrypt
         std::uint8_t *R;                        // Pointer to register i
 
         std::uint32_t network_word;             // Word in network byte order
 
         std::size_t padding_length;             // Number of padding octets
 
-        std::uint8_t integrity_data[8];         // Integrity data
+        std::array<std::uint8_t, 8> integrity_data;
+                                                // Integrity data
         std::uint32_t message_length_indicator; // Message length indicator
-        std::uint8_t plaintext_buffer[16];      // Plaintext for one block
+        std::array<std::uint8_t, 16> plaintext_buffer;
+                                                // Plaintext for one block
 };
 
 } // namespace Terra::Crypto::Cipher

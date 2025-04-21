@@ -207,32 +207,34 @@ void AESKeyWrap::Wrap(const std::span<const std::uint8_t> plaintext,
     n = (plaintext.size() >> 3);
 
     // Assign the IV
-    A = B;
+    A = B.data();
     if (!alternative_iv.empty())
     {
-        std::memcpy(A, alternative_iv.data(), 8);
+        std::copy(alternative_iv.begin(), alternative_iv.end(), A);
     }
     else
     {
-        std::memcpy(A, AES_Key_Wrap_Default_IV, 8);
+        std::copy(AES_Key_Wrap_Default_IV.begin(),
+                  AES_Key_Wrap_Default_IV.end(),
+                  A);
     }
 
     // Perform the key wrap
-    std::memcpy(ciphertext.data() + 8, plaintext.data(), plaintext.size());
+    std::copy(plaintext.begin(), plaintext.end(), ciphertext.data() + 8);
     for (j = 0, t = 1; j < 6; j++)
     {
         for (i = 1, R = ciphertext.data() + 8; i <= n; i++, t++, R += 8)
         {
-            std::memcpy(B + 8, R, 8);
+            std::copy(R, R + 8, B.data() + 8);
             aes.Encrypt(B, B);
             for (k = 8, tt = t; (k > 0) && (tt > 0); k--, tt >>= 8)
             {
                 A[k - 1] ^= static_cast<std::uint8_t>(tt & 0xff);
             }
-            std::memcpy(R, B + 8, 8);
+            std::copy(B.begin() + 8, B.end(), R);
         }
     }
-    std::memcpy(ciphertext.data(), A, 8);
+    std::copy(A, A + 8, ciphertext.begin());
 }
 
 /*
@@ -302,11 +304,11 @@ bool AESKeyWrap::Unwrap(const std::span<const std::uint8_t> ciphertext,
     n = (ciphertext.size() - 8) >> 3;
 
     // Assign A to be C[0] (first 64-bit block of the ciphertext)
-    A = B;
-    std::memcpy(A, ciphertext.data(), 8);
+    A = B.data();
+    std::copy(ciphertext.begin(), ciphertext.begin() + 8, A);
 
     // Perform the key wrap
-    std::memcpy(plaintext.data(), ciphertext.data() + 8, ciphertext.size() - 8);
+    std::copy(ciphertext.begin() + 8, ciphertext.end(), plaintext.begin());
     for (j = 0, t = 6 * n; j < 6; j++)
     {
         for (i = n, R = plaintext.data() + ciphertext.size() - 16;
@@ -317,9 +319,9 @@ bool AESKeyWrap::Unwrap(const std::span<const std::uint8_t> ciphertext,
             {
                 A[k - 1] ^= static_cast<std::uint8_t>(tt & 0xff);
             }
-            std::memcpy(B + 8, R, 8);
+            std::copy(R, R + 8, B.begin() + 8);
             aes.Decrypt(B, B);
-            std::memcpy(R, B + 8, 8);
+            std::copy(B.begin() + 8, B.end(), R);
         }
     }
 
@@ -327,21 +329,19 @@ bool AESKeyWrap::Unwrap(const std::span<const std::uint8_t> ciphertext,
     // so that the caller can perform integrity checking
     if (!integrity_data.empty())
     {
-        std::memcpy(integrity_data.data(), A, 8);
+        std::copy(A, A + 8, integrity_data.begin());
         return true;
     }
 
     // Perform integrity checking internally
     if (alternative_iv.size() == 8)
     {
-        if (std::memcmp(alternative_iv.data(), A, 8) != 0) return false;
-    }
-    else
-    {
-        if (std::memcmp(AES_Key_Wrap_Default_IV, A, 8) != 0) return false;
+        return std::equal(alternative_iv.begin(), alternative_iv.end(), A);
     }
 
-    return true;
+    return std::equal(AES_Key_Wrap_Default_IV.begin(),
+                      AES_Key_Wrap_Default_IV.end(),
+                      A);
 }
 
 /*
@@ -421,28 +421,34 @@ std::size_t AESKeyWrap::WrapWithPadding(
     // Store the initialization vector as the first 4 octets of the ciphertext
     if (alternative_iv.empty())
     {
-        std::memcpy(ciphertext.data(), Alternative_IV, 4);
+        std::copy(Alternative_IV.begin(),
+                  Alternative_IV.end(),
+                  ciphertext.begin());
     }
     else
     {
-        std::memcpy(ciphertext.data(), alternative_iv.data(), 4);
+        std::copy(alternative_iv.begin(),
+                  alternative_iv.end(),
+                  ciphertext.begin());
     }
 
     // Store the original message length in network byte order as the
     // second 4 octets of the buffer
     network_word = BitUtil::NetworkByteOrder(
                                 static_cast<std::uint32_t>(plaintext.size()));
-    std::memcpy(ciphertext.data() + 4, &network_word, 4);
+    std::copy(reinterpret_cast<std::uint8_t *>(&network_word),
+              reinterpret_cast<std::uint8_t *>(&network_word) + 4,
+              ciphertext.begin() + 4);
 
     // Copy the plaintext into the ciphertext buffer for encryption
-    std::memcpy(ciphertext.data() + 8, plaintext.data(), plaintext.size());
+    std::copy(plaintext.begin(), plaintext.end(), ciphertext.begin() + 8);
 
     // Pad the buffer to be an even 8 octets with zeros
     if (padding_length > 0)
     {
-        std::memset(ciphertext.data() + plaintext.size() + 8,
-                    0,
-                    padding_length);
+        std::fill(ciphertext.begin() + plaintext.size() + 8,
+                  ciphertext.begin() + plaintext.size() + 8 + padding_length,
+                  0);
     }
 
     // Encrypt the plaintext
@@ -523,10 +529,14 @@ std::size_t AESKeyWrap::UnwrapWithPadding(
                     plaintext_buffer);
 
         // Copy the integrity array
-        std::memcpy(integrity_data, plaintext_buffer, 8);
+        std::copy(plaintext_buffer.begin(),
+                  plaintext_buffer.begin() + 8,
+                  integrity_data.begin());
 
         // Copy the plaintext into the output buffer
-        std::memcpy(plaintext.data(), plaintext_buffer + 8, 8);
+        std::copy(plaintext_buffer.begin() + 8,
+                  plaintext_buffer.end(),
+                  plaintext.begin());
     }
     else
     {
@@ -540,20 +550,29 @@ std::size_t AESKeyWrap::UnwrapWithPadding(
     }
 
     // Verify that the first 4 octets of the integrity data are correct
-    if (alternative_iv.empty())
+    if (alternative_iv.size() == 4)
     {
-        if (std::memcmp(Alternative_IV, integrity_data, 4) != 0) return 0;
+        if (!std::equal(alternative_iv.begin(),
+                        alternative_iv.end(),
+                        integrity_data.begin()))
+        {
+            return 0;
+        }
     }
     else
     {
-        if (std::memcmp(alternative_iv.data(), integrity_data, 4) != 0)
+        if (!std::equal(Alternative_IV.begin(),
+                        Alternative_IV.end(),
+                        integrity_data.begin()))
         {
             return 0;
         }
     }
 
     // Copy the integrity check octets
-    std::memcpy(&network_word, integrity_data + 4, 4);
+    std::copy(integrity_data.begin() + 4,
+              integrity_data.begin() + 8,
+              reinterpret_cast<std::uint8_t *>(&network_word));
 
     // Ensure the message length indicator has a valid range
     message_length_indicator = BitUtil::NetworkByteOrder(network_word);

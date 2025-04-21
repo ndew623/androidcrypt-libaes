@@ -1,12 +1,14 @@
 # Change Log
 
-v1.0.7 (in progress)
+v1.1.0
 
 - Performance improvement in AESUniversal object
 - Removed inclusion of cpuid.h file for Windows (inadvertently added in 1.0.5
   while working on FreeBSD support)
 - Modified utility functions to use templates to allow re-used by specific
   integer types
+- Replaced use of legacy C arrays with std::array and replaced use of legacy C
+  functions with newer C++ algorithms
 
 v1.0.6
 

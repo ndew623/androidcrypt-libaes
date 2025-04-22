@@ -1,7 +1,7 @@
 /*
  *  aes_universal.h
  *
- *  Copyright (C) 2024-2025
+ *  Copyright (C) 2024, 2025
  *  Terrapane Corporation
  *  All Rights Reserved
  *
@@ -32,6 +32,7 @@
 #include <span>
 #include <array>
 #include <terra/crypto/cipher/aes.h>
+#include <terra/secutil/secure_array.h>
 
 namespace Terra::Crypto::Cipher
 {
@@ -86,16 +87,16 @@ class AESUniversal : public AESEngine
         std::size_t Nk;                         // 32-bit words in cipher key
 
         // State array of four columns
-        std::array<std::uint_fast32_t, Nb> state;
+        SecUtil::SecureArray<std::uint_fast32_t, Nb> state;
 
         // Alternating state array (temporary use during encryption/decryption)
-        std::array<std::uint_fast32_t, Nb> alt_state;
+        SecUtil::SecureArray<std::uint_fast32_t, Nb> alt_state;
 
         // Encryption round key schedule array
-        std::array<std::uint_fast32_t, Nb * (Max_Rounds + 1)> W;
+        SecUtil::SecureArray<std::uint_fast32_t, Nb * (Max_Rounds + 1)> W;
 
         // Decryption round key schedule array
-        std::array<std::uint_fast32_t, Nb * (Max_Rounds + 1)> DW;
+        SecUtil::SecureArray<std::uint_fast32_t, Nb * (Max_Rounds + 1)> DW;
 };
 
 } // namespace Terra::Crypto::Cipher

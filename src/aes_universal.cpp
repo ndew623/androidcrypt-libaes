@@ -1,7 +1,7 @@
 /*
  *  aes_universal.cpp
  *
- *  Copyright (C) 2024-2025
+ *  Copyright (C) 2024, 2025
  *  Terrapane Corporation
  *  All Rights Reserved
  *
@@ -166,10 +166,6 @@ AESUniversal::~AESUniversal()
 {
     SecUtil::SecureErase(&Nr, sizeof(Nr));
     SecUtil::SecureErase(&Nk, sizeof(Nk));
-    SecUtil::SecureErase(state);
-    SecUtil::SecureErase(alt_state);
-    SecUtil::SecureErase(W);
-    SecUtil::SecureErase(DW);
 }
 
 /*

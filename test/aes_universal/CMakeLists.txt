@@ -4,7 +4,7 @@ target_include_directories(test_aes_universal
     PRIVATE
         ${PROJECT_SOURCE_DIR}/src)
 
-target_link_libraries(test_aes_universal PRIVATE Terra::libaes Terra::stf)
+target_link_libraries(test_aes_universal PRIVATE Terra::libaes Terra::secutil Terra::stf)
 
 add_test(NAME test_aes_universal
          COMMAND test_aes_universal)

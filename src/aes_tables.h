@@ -1,7 +1,7 @@
 /*
  *  aes_tables.h
  *
- *  Copyright (C) 2024-2025
+ *  Copyright (C) 2024, 2025
  *  Terrapane Corporation
  *  All Rights Reserved
  *

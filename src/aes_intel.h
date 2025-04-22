@@ -91,10 +91,10 @@ class AESIntel : public AESEngine
         std::size_t Nr;
 
         // Encryption round key schedule array
-        SecUtil::SecureArray<__m128i, Max_Rounds + 1> W;
+        __m128i W[Max_Rounds + 1];
 
         // Decryption round key schedule array
-        SecUtil::SecureArray<__m128i, Max_Rounds + 1> DW;
+        __m128i DW[Max_Rounds + 1];
 
         // Temporary variables used in key expansion
         __m128i T1, T2, T3, T4;

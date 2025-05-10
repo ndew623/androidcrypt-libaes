@@ -35,10 +35,8 @@ FetchContent_Declare(bitutil
     GIT_SHALLOW    true)
 
 # If not installing libaes, turn off installation for dependencies
-if(NOT libaes_INSTALL)
-    set(secutil_INSTALL OFF)
-    set(bitutil_INSTALL OFF)
-endif()
+set(secutil_INSTALL ${libaes_INSTALL})
+set(bitutil_INSTALL ${libaes_INSTALL})
 
 # Make dependencies available
 FetchContent_MakeAvailable(secutil bitutil)

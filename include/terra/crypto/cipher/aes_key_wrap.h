@@ -61,7 +61,7 @@ class AESKeyWrap
                   const std::span<const std::uint8_t> alternative_iv = {});
         bool Unwrap(const std::span<const std::uint8_t> ciphertext,
                     std::span<std::uint8_t> plaintext,
-                    std::span<std::uint8_t> integrity_data = {},
+                    std::span<std::uint8_t> integrity = {},
                     const std::span<const std::uint8_t> alternative_iv = {});
 
         std::size_t WrapWithPadding(
@@ -87,9 +87,11 @@ class AESKeyWrap
 
         std::size_t padding_length;             // Number of padding octets
 
+        std::uint32_t message_length_indicator; // Message length indicator
+
         std::array<std::uint8_t, 8> integrity_data;
                                                 // Integrity data
-        std::uint32_t message_length_indicator; // Message length indicator
+
         std::array<std::uint8_t, 16> plaintext_buffer;
                                                 // Plaintext for one block
 };

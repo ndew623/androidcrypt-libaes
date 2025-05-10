@@ -9,7 +9,8 @@ v1.1.0
   integer types
 - Replaced use of legacy C arrays with std::array and replaced use of legacy C
   functions with newer C++ algorithms
-- Updated security utilities library
+- Updated dependencies
+- Strengthened compiler warnings
 
 v1.0.6
 

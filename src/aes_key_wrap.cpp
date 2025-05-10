@@ -59,8 +59,8 @@ AESKeyWrap::AESKeyWrap() :
     R{},
     network_word{},
     padding_length{},
-    integrity_data{},
     message_length_indicator{},
+    integrity_data{},
     plaintext_buffer{}
 {
     // Nothing more to do
@@ -99,8 +99,8 @@ AESKeyWrap::AESKeyWrap(const std::span<const std::uint8_t> key) :
     R{},
     network_word{},
     padding_length{},
-    integrity_data{},
     message_length_indicator{},
+    integrity_data{},
     plaintext_buffer{}
 {
     // Nothing more to do
@@ -132,9 +132,9 @@ AESKeyWrap::~AESKeyWrap()
     SecUtil::SecureErase(&B, sizeof(B));
     SecUtil::SecureErase(&padding_length, sizeof(padding_length));
     SecUtil::SecureErase(&network_word, sizeof(network_word));
-    SecUtil::SecureErase(&integrity_data, sizeof(integrity_data));
     SecUtil::SecureErase(&message_length_indicator,
                          sizeof(message_length_indicator));
+    SecUtil::SecureErase(&integrity_data, sizeof(integrity_data));
     SecUtil::SecureErase(&plaintext_buffer, sizeof(plaintext_buffer));
 }
 
@@ -248,7 +248,7 @@ void AESKeyWrap::Wrap(const std::span<const std::uint8_t> plaintext,
  *
  *      To support AES Key Wrap with Padding (RFC 5639), the alternative IV
  *      should be empty and the caller should provide a span to a 64-bit
- *      "integrity_data". In that case, this function will NOT perform
+ *      "integrity" span. In that case, this function will NOT perform
  *      integrity checking on the unwrapped key.
  *
  *  Parameters:
@@ -261,7 +261,7 @@ void AESKeyWrap::Wrap(const std::span<const std::uint8_t> plaintext,
  *          A buffer to hold the plaintext.  The plaintext buffer must be
  *          exactly eight octets less than the original ciphertext.
  *
- *      integrity_data [out]
+ *      integrity [out]
  *          This is a span to a 64-bit buffer that will contain the integrity
  *          data determined through the unwrap process.  If this parameter
  *          is empty, this function will perform integrity checking internally.
@@ -275,11 +275,11 @@ void AESKeyWrap::Wrap(const std::span<const std::uint8_t> plaintext,
  *      alternative_iv [in]
  *          The eight octet initialization vector to use with AES Key Wrap.  If
  *          this value is empty, the default IV will be used as per RFC 3394.
- *          Note that if "integrity_data" is present, this parameter is unused.
+ *          Note that if "integrity" is present, this parameter is unused.
  *
  *  Returns:
  *      True if successful, false if there was an integrity error.  If the
- *      integrity_data parameter provides a buffer, then the 64-bit integrity
+ *      integrity parameter provides a buffer, then the 64-bit integrity
  *      check register (A[] as defined in RFC 3394) will be returned to the
  *      caller without the integrity data being checked.
  *
@@ -288,13 +288,13 @@ void AESKeyWrap::Wrap(const std::span<const std::uint8_t> plaintext,
  */
 bool AESKeyWrap::Unwrap(const std::span<const std::uint8_t> ciphertext,
                         std::span<std::uint8_t> plaintext,
-                        std::span<std::uint8_t> integrity_data,
+                        std::span<std::uint8_t> integrity,
                         const std::span<const std::uint8_t> alternative_iv)
 {
     // Ensure buffers appear sane ("& 0x07" performs a mod 8 check)
     if ((ciphertext.size() < 24) || ((ciphertext.size() & 0x07) != 0) ||
         (plaintext.size() != (ciphertext.size() - 8)) ||
-        (!integrity_data.empty() && (integrity_data.size() != 8)) ||
+        (!integrity.empty() && (integrity.size() != 8)) ||
         (!alternative_iv.empty() && (alternative_iv.size() != 8)))
     {
         throw AESException("One or more spans are invalid");
@@ -325,11 +325,11 @@ bool AESKeyWrap::Unwrap(const std::span<const std::uint8_t> ciphertext,
         }
     }
 
-    // If the integrity_data parameter is provided, return A[] to the caller
+    // If the integrity parameter is provided, return A[] to the caller
     // so that the caller can perform integrity checking
-    if (!integrity_data.empty())
+    if (!integrity.empty())
     {
-        std::copy(A, A + 8, integrity_data.begin());
+        std::copy(A, A + 8, integrity.begin());
         return true;
     }
 
@@ -448,7 +448,7 @@ std::size_t AESKeyWrap::WrapWithPadding(
     {
         std::fill(ciphertext.begin() + plaintext.size() + 8,
                   ciphertext.begin() + plaintext.size() + 8 + padding_length,
-                  0);
+                  std::uint8_t(0));
     }
 
     // Encrypt the plaintext

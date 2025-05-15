@@ -35,10 +35,10 @@ if(TERRA_ENABLE_INTEL_INTRINSICS)
     # Set compiler options for some platforms to include -maes
     if(DEFINED CMAKE_OSX_ARCHITECTURES AND NOT CMAKE_OSX_ARCHITECTURES STREQUAL "")
         target_compile_options(aes PRIVATE
-            # On Mac, -maes for explicit single x86_64
+            # On Mac, -maes for single x86_64 architecture
             $<$<AND:$<PLATFORM_ID:Darwin>,$<STREQUAL:${CMAKE_OSX_ARCHITECTURES},x86_64>>:-maes>
-            # On Mac, -maes and warning suppression for universal with x86_64 (excludes single x86_64)
-            $<$<AND:$<PLATFORM_ID:Darwin>,$<IN_LIST:x86_64,${CMAKE_OSX_ARCHITECTURES}>,$<NOT:$<STREQUAL:${CMAKE_OSX_ARCHITECTURES},x86_64>>:-maes -Wno-unused-command-line-argument>)
+            # On Mac, -maes and warning suppression for universal builds that include x86_64
+            $<$<AND:$<PLATFORM_ID:Darwin>,$<IN_LIST:x86_64,${CMAKE_OSX_ARCHITECTURES}>,$<NOT:$<STREQUAL:${CMAKE_OSX_ARCHITECTURES},x86_64>>>:-maes -Wno-unused-command-line-argument>)
     else()
         target_compile_options(aes PRIVATE
             # On any platform, -maes for system processors x86_64 or i386

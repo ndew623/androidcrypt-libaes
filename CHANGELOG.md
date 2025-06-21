@@ -1,5 +1,9 @@
 # Change Log
 
+v1.1.1
+
+- Made #ifdef statements more generic to build on any UNIX-like system
+
 v1.1.0
 
 - Performance improvement in AESUniversal object

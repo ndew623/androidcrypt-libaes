@@ -55,13 +55,11 @@ bool CPUSupportsAES_NI()
     return (cpu_info[2] & Intel_AES_Bit) != 0;
 }
 
-#else
-
-#if defined(__linux__) || defined(__FreeBSD__)
+#elif defined(HAVE_CPUID)
 
 bool CPUSupportsAES_NI()
 {
-    // Ensure we can query via cpuid
+    // Ensure we can query via cpuid with leaf value 1
     {
         std::uint32_t eax{}, ebx{}, ecx{}, edx{};
         __cpuid(0, eax, ebx, ecx, edx);
@@ -73,7 +71,7 @@ bool CPUSupportsAES_NI()
     return (ecx & Intel_AES_Bit) != 0;
 }
 
-#else // defined(__linux__) || defined(__FreeBSD__)
+#else
 
 #define cpuid(function_id, eax, ebx, ecx, edx) \
     __asm__ __volatile__ ("cpuid": "=a" (eax), "=b" (ebx), "=c" (ecx), \
@@ -81,7 +79,7 @@ bool CPUSupportsAES_NI()
 
 bool CPUSupportsAES_NI()
 {
-    // Ensure we can query via cpuid
+    // Ensure we can query via cpuid with leaf value 1
     {
         std::uint32_t eax{}, ebx{}, ecx{}, edx{};
         cpuid(0, eax, ebx, ecx, edx);
@@ -92,8 +90,6 @@ bool CPUSupportsAES_NI()
     cpuid(1, eax, ebx, ecx, edx);
     return (ecx & Intel_AES_Bit) != 0;
 }
-
-#endif // defined(__linux__) || defined(__FreeBSD__)
 
 #endif // _WIN32
 

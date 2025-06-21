@@ -44,6 +44,22 @@ if(TERRA_ENABLE_INTEL_INTRINSICS)
             # On any platform, -maes for system processors x86_64 or i386
             $<$<OR:$<STREQUAL:${CMAKE_SYSTEM_PROCESSOR},x86_64>,$<STREQUAL:${CMAKE_SYSTEM_PROCESSOR},i386>>:-maes>)
     endif()
+
+    # Check to see if __cpuid() can be called
+    include(CheckCXXSourceCompiles)
+
+    check_cxx_source_compiles("
+        #include <cpuid.h>
+        #include <cstdint>
+        int main() {
+            uint32_t a, b, c, d;
+            __cpuid(0, a, b, c, d);
+            return 0;
+        }" HAVE_CPUID)
+
+    if(HAVE_CPUID)
+        target_compile_definitions(aes PRIVATE HAVE_CPUID)
+    endif()
 endif()
 
 # Link against library dependencies

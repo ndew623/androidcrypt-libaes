@@ -46,20 +46,22 @@ if(TERRA_ENABLE_INTEL_INTRINSICS)
             $<$<OR:$<STREQUAL:${CMAKE_SYSTEM_PROCESSOR},x86_64>,$<STREQUAL:${CMAKE_SYSTEM_PROCESSOR},AMD64>,$<STREQUAL:${CMAKE_SYSTEM_PROCESSOR},amd64>,$<STREQUAL:${CMAKE_SYSTEM_PROCESSOR},i386>>:-maes>)
     endif()
 
-    # Check to see if __cpuid() can be called
-    include(CheckCXXSourceCompiles)
+    if(NOT WIN32)
+        # Check to see if __cpuid() can be called
+        include(CheckCXXSourceCompiles)
 
-    check_cxx_source_compiles("
-        #include <cpuid.h>
-        #include <cstdint>
-        int main() {
-            uint32_t a, b, c, d;
-            __cpuid(0, a, b, c, d);
-            return 0;
-        }" HAVE_CPUID)
+        check_cxx_source_compiles("
+            #include <cpuid.h>
+            #include <cstdint>
+            int main() {
+                uint32_t a, b, c, d;
+                __cpuid(0, a, b, c, d);
+                return 0;
+            }" HAVE_CPUID)
 
-    if(HAVE_CPUID)
-        target_compile_definitions(aes PRIVATE HAVE_CPUID)
+        if(HAVE_CPUID)
+            target_compile_definitions(aes PRIVATE HAVE_CPUID)
+        endif()
     endif()
 endif()
 

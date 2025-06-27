@@ -2,7 +2,8 @@
 
 v1.1.1
 
-- Made #ifdef statements more generic to build on any UNIX-like system
+- Made #ifdef statements more generic to build on any Unix-like system
+- Modified how libaes determines if the __cpuid() function exists
 
 v1.1.0
 

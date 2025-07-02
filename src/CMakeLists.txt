@@ -40,7 +40,7 @@ if(TERRA_ENABLE_INTEL_INTRINSICS)
 
             # On Mac, -maes and warning suppression for universal builds that include x86_64
             $<$<AND:$<PLATFORM_ID:Darwin>,$<IN_LIST:x86_64,${CMAKE_OSX_ARCHITECTURES}>,$<NOT:$<STREQUAL:${CMAKE_OSX_ARCHITECTURES},x86_64>>>:-maes -Wno-unused-command-line-argument>)
-    else()
+    elsif(UNIX OR APPLE)
         target_compile_options(aes PRIVATE
             # On any platform, -maes for system processors x86_64/amd64/i386
             $<$<OR:$<STREQUAL:${CMAKE_SYSTEM_PROCESSOR},x86_64>,$<STREQUAL:${CMAKE_SYSTEM_PROCESSOR},AMD64>,$<STREQUAL:${CMAKE_SYSTEM_PROCESSOR},amd64>,$<STREQUAL:${CMAKE_SYSTEM_PROCESSOR},i386>>:-maes>)

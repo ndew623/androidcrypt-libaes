@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.21)
 
 # Define the AES Library project
 project(libaes
-        VERSION 1.1.1.0
+        VERSION 1.1.2.0
         DESCRIPTION "AES Cryptography Library"
         LANGUAGES CXX)
 
@@ -36,10 +36,10 @@ option(TERRA_ENABLE_INTEL_INTRINSICS "Enable Intel AES Intrinsics" ${TERRA_CHECK
 # Option to enable speed test in the AES engine tests
 option(TERRA_ENABLE_AES_SPEED_TESTS "Enable AES Engine Speed Tests" OFF)
 
+include(CTest)
+
 add_subdirectory(dependencies)
 add_subdirectory(src)
-
-include(CTest)
 
 if(BUILD_TESTING AND libaes_BUILD_TESTS)
     add_subdirectory(test)

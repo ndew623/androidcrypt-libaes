@@ -1,5 +1,10 @@
 # Change Log
 
+v1.1.2
+
+- Updated CMake to support downstream testing
+- Updated dependencies
+
 v1.1.1
 
 - Made #ifdef statements more generic to build on any Unix-like system

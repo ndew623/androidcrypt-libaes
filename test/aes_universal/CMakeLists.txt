@@ -20,7 +20,7 @@ set_target_properties(test_aes_universal
 target_compile_options(test_aes_universal
     PRIVATE
         $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:-Wpedantic -Wextra -Wall>
-        $<$<CXX_COMPILER_ID:MSVC>:>)
+        $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>)
 
 # If speed tests are enabled, pass that to the compiler
 if(TERRA_ENABLE_AES_SPEED_TESTS)

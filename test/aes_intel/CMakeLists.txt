@@ -20,7 +20,7 @@ set_target_properties(test_aes_intel
 target_compile_options(test_aes_intel
     PRIVATE
         $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:-Wpedantic -Wextra -Wall>
-        $<$<CXX_COMPILER_ID:MSVC>:>)
+        $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>)
 
 # Ensure compiler knows if requested to build with Intel Intrinsics
 if(TERRA_ENABLE_INTEL_INTRINSICS)

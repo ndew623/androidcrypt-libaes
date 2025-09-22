@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.21)
 
 # Define the AES Library project
 project(libaes
-        VERSION 1.1.2.0
+        VERSION 1.1.3.0
         DESCRIPTION "AES Cryptography Library"
         LANGUAGES CXX)
 

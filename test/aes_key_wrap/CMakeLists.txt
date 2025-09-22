@@ -16,4 +16,4 @@ set_target_properties(test_aes_key_wrap
 target_compile_options(test_aes_key_wrap
     PRIVATE
         $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:-Wpedantic -Wextra -Wall>
-        $<$<CXX_COMPILER_ID:MSVC>:>)
+        $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>)

@@ -23,10 +23,10 @@ if(libaes_BUILD_TESTS)
 endif()
 
 # Fetch and make available security-related utility functions
-FetchContent_Declare(secutil
-    GIT_REPOSITORY ${TERRAPANE_SOURCE_URI}/secutil.git
-    GIT_TAG        v1.0.9
-    GIT_SHALLOW    true)
+#FetchContent_Declare(secutil
+    #GIT_REPOSITORY ${TERRAPANE_SOURCE_URI}/secutil.git
+    #GIT_TAG        v1.0.9
+    #GIT_SHALLOW    true)
 
 # Fetch and make available bit-oriented utility functions
 FetchContent_Declare(bitutil
@@ -35,8 +35,9 @@ FetchContent_Declare(bitutil
     GIT_SHALLOW    true)
 
 # If not installing libaes, turn off installation for dependencies
-set(secutil_INSTALL ${libaes_INSTALL})
+#set(secutil_INSTALL ${libaes_INSTALL})
 set(bitutil_INSTALL ${libaes_INSTALL})
 
 # Make dependencies available
-FetchContent_MakeAvailable(secutil bitutil)
+#FetchContent_MakeAvailable(secutil bitutil)
+FetchContent_MakeAvailable(bitutil)
